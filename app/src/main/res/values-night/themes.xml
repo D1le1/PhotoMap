@@ -3,5 +3,6 @@
     <style name="Base.Theme.PhotoMap" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="android:statusBarColor">@color/green</item>
         <item name="mainBackground">@color/green</item>
+        <item name="errorColor">@color/dark_red</item>
     </style>
 </resources>
