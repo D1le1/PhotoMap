@@ -1,0 +1,9 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Base.Theme.PhotoMap" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="android:statusBarColor">@color/light_green</item>
+        <item name="mainBackground">@color/light_green</item>
+    </style>
+
+    <style name="Theme.PhotoMap" parent="Base.Theme.PhotoMap" />
+</resources>
