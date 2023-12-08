@@ -1,6 +1,7 @@
 package by.korsakovegor.photomap.utils
 
 import android.util.Log
+import by.korsakovegor.photomap.models.SignUserDtoIn
 import by.korsakovegor.photomap.models.SignUserOutDto
 import okhttp3.Response
 import org.json.JSONObject
@@ -21,6 +22,14 @@ class JsonParser {
             }
 
             return null
+        }
+
+        fun userToJson(user: SignUserDtoIn): String{
+            val jsonObject = JSONObject()
+            jsonObject.put("login", user.login)
+            jsonObject.put("password", user.password)
+
+            return jsonObject.toString()
         }
     }
 }

@@ -38,62 +38,32 @@ class LoginFragment : Fragment() {
         binding.loginButton.setOnClickListener {
             val login = binding.loginEditText.text.toString()
             val password = binding.passwordEditText.text.toString()
-            if (SignUserDtoIn.validateLogin(login))
-                when (SignUserDtoIn.validatePassword(password)) {
-                    0 -> CoroutineScope(Dispatchers.IO).launch {
-                        viewModel.loginUser(SignUserDtoIn(login, password))
-                    }
-                    1 -> Log.d("D1le", "Password must match [a-z0-9_\\-.@]+")
-                    2 -> Log.d("D1le", "Password size must be between 8 and 500")
-                }
-            else {
-                binding.loginEditText.error = "Login size must be between 4 and 32"
-                Log.d("D1le", "Login size must be between 4 and 32")
+
+            val user = SignUserDtoIn(login, password)
+            val results = user.validateUser()
+
+            var isValid = true
+
+            if (results[1] == 1) {
+                binding.loginEditText.error = "Login must be between 4 and 32"
+                isValid = false
             }
+            if (results[0] == 1) {
+                binding.loginEditText.error = "Login must match [a-z0-9_\\-.@]+"
+                isValid = false
+            }
+            if (results[2] == 1) {
+                binding.passwordEditText.error = "Password must be between 8 and 500"
+                isValid = false
+            }
+
+            if(isValid)
+                viewModel.loginUser(user)
         }
 
-        viewModel.error.observe(viewLifecycleOwner){
+        viewModel.error.observe(viewLifecycleOwner) {
             binding.error.visibility = View.VISIBLE
             binding.error.text = it
         }
     }
-
-
-//    private fun sendPostRequest(url: String, jsonBody: String): String {
-//    val urlObj = URL(url)
-//    val connection = urlObj.openConnection() as HttpURLConnection
-//
-//    // Устанавливаем метод запроса на POST
-//    connection.requestMethod = "POST"
-//
-//    // Устанавливаем заголовки
-//    connection.setRequestProperty("accept", "application/json")
-//    connection.setRequestProperty("Content-Type", "application/json")
-//
-//    // Включаем режим вывода данных в запрос
-//    connection.doOutput = true
-//
-//    // Получаем поток вывода для записи данных в запрос
-//    val outputStream = DataOutputStream(connection.outputStream)
-//    outputStream.writeBytes(jsonBody)
-//    outputStream.flush()
-//    outputStream.close()
-//
-//    // Получаем код ответа от сервера
-//    val responseCode = connection.responseCode
-//
-//    // Читаем ответ от сервера
-//    val response = StringBuilder()
-//    val reader = BufferedReader(InputStreamReader(connection.inputStream))
-//    var line: String?
-//    while (reader.readLine().also { line = it } != null) {
-//        response.append(line)
-//    }
-//    reader.close()
-//
-//    // Закрываем соединение
-//    connection.disconnect()
-//
-//    return response.toString()
-//}
 }

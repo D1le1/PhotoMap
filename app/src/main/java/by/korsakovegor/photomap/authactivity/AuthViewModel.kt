@@ -26,13 +26,28 @@ class AuthViewModel : ViewModel() {
         CoroutineScope(Dispatchers.IO).launch {
             val response = sendPostRequest(
                 "https://junior.balinasoft.com/api/account/signin",
-                "{\"login\": \"${user.login}\", \"password\": \"${user.password}\"}"
+                JsonParser.userToJson(user)
             )
             val user = JsonParser.jsonToUser(response)
-            if(user == null)
+            if (user == null)
                 _error.postValue("Invalid user, check your login and password")
             else
                 _user.postValue(user)
+        }
+    }
+
+    fun registerUser(user: SignUserDtoIn) {
+        CoroutineScope(Dispatchers.IO).launch {
+            val response = sendPostRequest(
+                "https://junior.balinasoft.com/api/account/signup",
+                JsonParser.userToJson(user)
+            )
+            val newUser = JsonParser.jsonToUser(response)
+            if (newUser == null)
+                _error.postValue("User already exists")
+            else {
+                _user.postValue(newUser)
+            }
         }
     }
 
