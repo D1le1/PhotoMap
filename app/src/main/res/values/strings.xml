@@ -6,4 +6,7 @@
 
     <string name="login_button">Login</string>
     <string name="register_button">Sign Up</string>
+
+    <string name="navigation_drawer_open">Nav opened</string>
+    <string name="navigation_drawer_close">Nav closed</string>
 </resources>
