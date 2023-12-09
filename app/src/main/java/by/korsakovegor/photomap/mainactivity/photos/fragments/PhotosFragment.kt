@@ -1,17 +1,20 @@
-package by.korsakovegor.photomap.mainactivity.photos
+package by.korsakovegor.photomap.mainactivity.photos.fragments
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.GridLayout
+import android.view.animation.AnimationUtils
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
-import by.korsakovegor.photomap.databinding.FragmentMapLayoutBinding
+import by.korsakovegor.photomap.R
 import by.korsakovegor.photomap.databinding.FragmentPhotosLayoutBinding
+import by.korsakovegor.photomap.mainactivity.MainActivity
+import by.korsakovegor.photomap.mainactivity.photos.activities.PhotoDetailActivity
 import by.korsakovegor.photomap.mainactivity.photos.adapters.RecyclerAdapter
 
-class PhotosFragment : Fragment() {
+class PhotosFragment() : Fragment() {
     private lateinit var binding: FragmentPhotosLayoutBinding
 
     override fun onCreateView(
@@ -44,6 +47,7 @@ class PhotosFragment : Fragment() {
         )
 
         val adapter = RecyclerAdapter(images)
+        adapter.setOnItemClickListener(activity as RecyclerAdapter.OnItemClickListener)
         recycler.adapter = adapter
     }
 }
