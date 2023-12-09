@@ -3,12 +3,20 @@ package by.korsakovegor.photomap.mainactivity
 import by.korsakovegor.photomap.R
 import android.os.Bundle
 import android.util.Log
+import android.view.MenuItem
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.activity.ComponentActivity
+import androidx.core.view.GravityCompat
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentTransaction
 import by.korsakovegor.photomap.databinding.ActivityMainBinding
+import by.korsakovegor.photomap.mainactivity.map.MapFragment
+import by.korsakovegor.photomap.mainactivity.photos.PhotosFragment
+import com.google.android.material.navigation.NavigationView
 
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
     private lateinit var binding: ActivityMainBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -26,8 +34,31 @@ class MainActivity : AppCompatActivity() {
         binding.drawerLayout.addDrawerListener(toggle)
         toggle.syncState()
 
+        binding.navigationView.setNavigationItemSelectedListener(this)
+        openFragment(PhotosFragment())
+    }
+
+    override fun onNavigationItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.photos -> openFragment(PhotosFragment())
+            R.id.map -> openFragment(MapFragment())
+        }
+        binding.drawerLayout.closeDrawer(GravityCompat.START)
+        return true
+    }
 
 
-        Log.d("D1le", "Hello")
+    override fun onBackPressed() {
+        if(binding.drawerLayout.isDrawerOpen(GravityCompat.START))
+            binding.drawerLayout.closeDrawer(GravityCompat.START)
+        else
+            super.onBackPressed()
+    }
+
+    private fun openFragment(fragment: Fragment) {
+        val fragmentTransaction = supportFragmentManager.beginTransaction()
+        fragmentTransaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+        fragmentTransaction.replace(R.id.fragment_container, fragment)
+        fragmentTransaction.commit()
     }
 }
