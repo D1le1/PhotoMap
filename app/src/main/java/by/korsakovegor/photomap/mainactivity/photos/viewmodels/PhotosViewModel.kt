@@ -1,4 +1,4 @@
-package by.korsakovegor.photomap.mainactivity.photos.fragments
+package by.korsakovegor.photomap.mainactivity.photos.viewmodels
 
 import android.util.Log
 import androidx.lifecycle.LiveData
@@ -25,6 +25,7 @@ class PhotosViewModel: ViewModel() {
     fun getImages(){
         CoroutineScope(Dispatchers.IO).launch {
             val response = sendGetRequest("https://junior.balinasoft.com/api/image?page=0")
+            Log.d("D1le", response)
             val resImgs = JsonParser.jsonToImageList(response)
             if(resImgs != null)
                 _images.postValue(resImgs)
@@ -36,7 +37,7 @@ class PhotosViewModel: ViewModel() {
 
         val request =
             Request.Builder().url(url).addHeader("accept", "*/*")
-                .addHeader("Access-Token", "9yiYh82kqJhTkD5Iq06iXMwGEl9N3xOBaa21LgI1OlutY5pfWyVe4ZQ9WZRL93LU").build()
+                .addHeader("Access-Token", "6U5f0Hvae8OgyKpfWdnnW7l3Euvdw0TlFrlztYubaVZ59J4tKIfjd23MaAbWseXP").build()
 
         val response = client.newCall(request).execute()
         return response.body?.string() ?: ""

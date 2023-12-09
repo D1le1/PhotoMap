@@ -13,11 +13,13 @@ import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
+import androidx.lifecycle.ViewModelProvider
 import by.korsakovegor.photomap.databinding.ActivityMainBinding
 import by.korsakovegor.photomap.mainactivity.map.MapFragment
 import by.korsakovegor.photomap.mainactivity.photos.adapters.RecyclerAdapter
 import by.korsakovegor.photomap.mainactivity.photos.fragments.PhotoDetailFragment
 import by.korsakovegor.photomap.mainactivity.photos.fragments.PhotosFragment
+import by.korsakovegor.photomap.mainactivity.photos.viewmodels.PhotosViewModel
 import by.korsakovegor.photomap.models.ImageDtoOut
 import com.google.android.material.navigation.NavigationView
 import kotlinx.coroutines.CoroutineScope
@@ -30,6 +32,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     RecyclerAdapter.OnItemClickListener {
     private lateinit var binding: ActivityMainBinding
     private lateinit var toggle: ActionBarDrawerToggle
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -73,7 +76,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             supportActionBar?.setDisplayHomeAsUpEnabled(false)
             toggle.syncState()
             binding.fab.show()
-            super.onBackPressed()
+            supportFragmentManager.popBackStack()
         } else
             super.onBackPressed()
     }
@@ -83,7 +86,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         fragmentTransaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
         fragmentTransaction.replace(R.id.fragment_container, fragment)
         if (flag) {
-            fragmentTransaction.addToBackStack("")
+            fragmentTransaction.addToBackStack(null)
             toggle.isDrawerIndicatorEnabled = false
             binding.drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED)
             binding.fab.hide()

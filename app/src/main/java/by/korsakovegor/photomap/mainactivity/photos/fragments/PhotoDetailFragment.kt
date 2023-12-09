@@ -1,7 +1,11 @@
 package by.korsakovegor.photomap.mainactivity.photos.fragments
 
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.drawable.BitmapDrawable
 import android.os.Build
 import android.os.Bundle
+import android.util.Base64
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -14,6 +18,20 @@ import by.korsakovegor.photomap.R
 import by.korsakovegor.photomap.databinding.DetailPhotoLayoutBinding
 import by.korsakovegor.photomap.models.ImageDtoOut
 import com.squareup.picasso.Picasso
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import okhttp3.Call
+import okhttp3.Callback
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.Response
+import org.json.JSONObject
+import java.io.ByteArrayOutputStream
+import java.io.IOException
+import java.util.Date
 
 class PhotoDetailFragment:Fragment() {
     companion object{
@@ -22,6 +40,47 @@ class PhotoDetailFragment:Fragment() {
             photoDetailFragment.arguments = args
             return photoDetailFragment
         }
+
+        fun uploadImageToServer(base64Image: String, date: Long, lat: Double, lng: Double) {
+            val jsonBody = JSONObject()
+                .put("base64Image", base64Image)
+                .put("date", date)
+                .put("lat", lat)
+                .put("lng", lng)
+                .toString()
+
+            val mediaType = "application/json;charset=UTF-8".toMediaType()
+            val requestBody = jsonBody.toRequestBody(mediaType)
+
+            val request = Request.Builder()
+                .url("https://junior.balinasoft.com/api/image")
+                .post(requestBody)
+                .addHeader("accept", "application/json;charset=UTF-8")
+                .addHeader("Access-Token", "6U5f0Hvae8OgyKpfWdnnW7l3Euvdw0TlFrlztYubaVZ59J4tKIfjd23MaAbWseXP")
+                .build()
+
+            val client = OkHttpClient()
+            client.newCall(request).enqueue(object : Callback {
+                override fun onFailure(call: Call, e: IOException) {
+                    // Обработка ошибок
+                    Log.d("D1le", e.printStackTrace().toString())
+                }
+
+                override fun onResponse(call: Call, response: Response) {
+                    Log.d("D1le", response.body?.string().toString())
+                }
+            })
+        }
+
+        fun drawableToBase64(context: Context?, drawableId: Int): String {
+            val drawable = context?.getDrawable(drawableId)
+            val bitmap = (drawable as BitmapDrawable).bitmap
+            val outputStream = ByteArrayOutputStream()
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
+            val imageBytes = outputStream.toByteArray()
+            return Base64.encodeToString(imageBytes, Base64.DEFAULT)
+        }
+
     }
 
     private lateinit var binding: DetailPhotoLayoutBinding
@@ -30,7 +89,7 @@ class PhotoDetailFragment:Fragment() {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         binding = DetailPhotoLayoutBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -42,7 +101,51 @@ class PhotoDetailFragment:Fragment() {
 
         Picasso.get().load(image?.url).into(binding.photo)
         binding.time.text = image?.time
+        val date = Date()
+        val time = date.time / 1000
+        CoroutineScope(Dispatchers.IO).launch {
+            val base = drawableToBase64(context, R.drawable.image2)
+//            uploadImageToServer(base, time, 20.1, 20.1)
+        }
+    }
+
+    fun uploadImageToServer(base64Image: String, date: Long, lat: Double, lng: Double) {
+        val jsonBody = JSONObject()
+            .put("base64Image", base64Image)
+            .put("date", date)
+            .put("lat", lat)
+            .put("lng", lng)
+            .toString()
+
+        val mediaType = "application/json;charset=UTF-8".toMediaType()
+        val requestBody = jsonBody.toRequestBody(mediaType)
+
+        val request = Request.Builder()
+            .url("https://junior.balinasoft.com/api/image")
+            .post(requestBody)
+            .addHeader("accept", "application/json;charset=UTF-8")
+            .addHeader("Access-Token", "6U5f0Hvae8OgyKpfWdnnW7l3Euvdw0TlFrlztYubaVZ59J4tKIfjd23MaAbWseXP")
+            .build()
+
+        val client = OkHttpClient()
+        client.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                // Обработка ошибок
+                Log.d("D1le", e.printStackTrace().toString())
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                Log.d("D1le", response.body?.string().toString())
+            }
+        })
+    }
+
+    fun drawableToBase64(context: Context?, drawableId: Int): String {
+        val drawable = context?.getDrawable(drawableId)
+        val bitmap = (drawable as BitmapDrawable).bitmap
+        val outputStream = ByteArrayOutputStream()
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
+        val imageBytes = outputStream.toByteArray()
+        return Base64.encodeToString(imageBytes, Base64.DEFAULT)
     }
 }
-
-//https://junior.balinasoft.com/images/uploaded/2023/11/9/u479r7m2sglm25tonachio89vylfk05a.png
