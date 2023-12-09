@@ -4,6 +4,7 @@
         <item name="android:statusBarColor">@color/light_green</item>
         <item name="mainBackground">@color/light_green</item>
         <item name="errorColor">@color/light_red</item>
+        <item name="android:textColorSecondary">@color/white</item>
     </style>
 
     <style name="Theme.PhotoMap" parent="Base.Theme.PhotoMap" />

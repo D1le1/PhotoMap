@@ -9,4 +9,7 @@
 
     <string name="navigation_drawer_open">Nav opened</string>
     <string name="navigation_drawer_close">Nav closed</string>
+    
+    <string name="nav_photos">Photos</string>
+    <string name="nav_map">Map</string>
 </resources>
