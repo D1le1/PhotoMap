@@ -28,10 +28,6 @@
             </intent-filter>
 
         </activity>
-
-        <activity android:name=".mainactivity.photos.activities.PhotoDetailActivity">
-
-        </activity>
     </application>
 
 </manifest>
