@@ -1,10 +1,8 @@
 package by.korsakovegor.photomap.mainactivity
 
-import android.content.Context
 import by.korsakovegor.photomap.R
 import android.os.Bundle
 import android.view.MenuItem
-import android.view.MotionEvent
 import android.view.View
 import android.view.animation.AnimationUtils
 import androidx.appcompat.app.ActionBarDrawerToggle
@@ -13,23 +11,17 @@ import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
-import androidx.lifecycle.ViewModelProvider
 import by.korsakovegor.photomap.databinding.ActivityMainBinding
 import by.korsakovegor.photomap.mainactivity.map.MapFragment
-import by.korsakovegor.photomap.mainactivity.photos.adapters.RecyclerAdapter
+import by.korsakovegor.photomap.mainactivity.photos.adapters.ImageRecyclerAdapter
 import by.korsakovegor.photomap.mainactivity.photos.fragments.PhotoDetailFragment
 import by.korsakovegor.photomap.mainactivity.photos.fragments.PhotosFragment
-import by.korsakovegor.photomap.mainactivity.photos.viewmodels.PhotosViewModel
 import by.korsakovegor.photomap.models.ImageDtoOut
 import com.google.android.material.navigation.NavigationView
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 
 class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener,
-    RecyclerAdapter.OnItemClickListener {
+    ImageRecyclerAdapter.OnItemClickListener {
     private lateinit var binding: ActivityMainBinding
     private lateinit var toggle: ActionBarDrawerToggle
 
@@ -98,7 +90,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         fragmentTransaction.commit()
     }
 
-    override fun onClick(v: View, image: ImageDtoOut) {
+    override fun onImageClick(v: View, image: ImageDtoOut) {
         val anim = AnimationUtils.loadAnimation(this, R.anim.button_state)
         v.startAnimation(anim)
         val bundle = Bundle()

@@ -8,18 +8,18 @@ import android.widget.TextView
 import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.RecyclerView
 import by.korsakovegor.photomap.R
-import by.korsakovegor.photomap.mainactivity.map.MapFragment
 import by.korsakovegor.photomap.models.ImageDtoOut
 import com.squareup.picasso.Picasso
 
-class RecyclerAdapter(private val images: ArrayList<ImageDtoOut>) :
-    RecyclerView.Adapter<RecyclerAdapter.ViewHolder>() {
+class ImageRecyclerAdapter :
+    RecyclerView.Adapter<ImageRecyclerAdapter.ViewHolder>() {
 
     private var onItemClickListener: OnItemClickListener? = null
+    private val images: ArrayList<ImageDtoOut> = arrayListOf()
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val image: ImageView = itemView.findViewById(R.id.photoImage)
-        val text: TextView = itemView.findViewById(R.id.photoText)
+        val date: TextView = itemView.findViewById(R.id.photoText)
         val card: CardView = itemView.findViewById(R.id.photoCard)
     }
 
@@ -36,9 +36,9 @@ class RecyclerAdapter(private val images: ArrayList<ImageDtoOut>) :
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val currentImage = images[position]
         Picasso.get().load(currentImage.url).into(holder.image)
-        holder.text.text = currentImage.formattedDate
+        holder.date.text = currentImage.formattedDate
         holder.card.setOnClickListener {
-            onItemClickListener?.onClick(it, currentImage)
+            onItemClickListener?.onImageClick(it, currentImage)
         }
     }
 
@@ -46,7 +46,13 @@ class RecyclerAdapter(private val images: ArrayList<ImageDtoOut>) :
         onItemClickListener = listener
     }
 
+    fun updateData(newImages: ArrayList<ImageDtoOut>){
+        images.clear()
+        images.addAll(newImages)
+        notifyDataSetChanged()
+    }
+
     interface OnItemClickListener {
-        fun onClick(v: View, image: ImageDtoOut)
+        fun onImageClick(v: View, image: ImageDtoOut)
     }
 }

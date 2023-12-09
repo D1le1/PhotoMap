@@ -1,6 +1,7 @@
 package by.korsakovegor.photomap.utils
 
 import android.util.Log
+import by.korsakovegor.photomap.models.CommentDtoOut
 import by.korsakovegor.photomap.models.ImageDtoOut
 import by.korsakovegor.photomap.models.SignUserDtoIn
 import by.korsakovegor.photomap.models.SignUserOutDto
@@ -45,9 +46,29 @@ class JsonParser {
                     val date = arrayJsonObject.getLong("date")
                     val lat = arrayJsonObject.getDouble("lat")
                     val lng = arrayJsonObject.getDouble("lng")
+
                     imagesList.add(ImageDtoOut(id, url, date, lat, lng))
                 }
                 return imagesList
+            }
+            return null
+        }
+
+        fun jsonToCommentList(jsonResponse: String): ArrayList<CommentDtoOut>? {
+            val jsonObject = JSONObject(jsonResponse)
+            val status = jsonObject.getInt("status")
+            if(status == 200){
+                val commentsList = ArrayList<CommentDtoOut>()
+                val jsonArray = jsonObject.getJSONArray("data")
+                for(i in 0 until jsonArray.length()){
+                    val arrayJsonObject = jsonArray.getJSONObject(i)
+                    val id = arrayJsonObject.getInt("id")
+                    val date = arrayJsonObject.getLong("date")
+                    val text = arrayJsonObject.getString("text")
+
+                    commentsList.add(CommentDtoOut(id, date, text))
+                }
+                return commentsList
             }
             return null
         }
