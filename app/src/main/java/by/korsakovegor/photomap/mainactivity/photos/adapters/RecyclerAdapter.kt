@@ -1,15 +1,8 @@
 package by.korsakovegor.photomap.mainactivity.photos.adapters
 
-import android.content.Intent
-import android.os.Bundle
-import android.transition.ChangeBounds
-import android.transition.TransitionManager
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.animation.Animation
-import android.view.animation.AnimationUtils
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.cardview.widget.CardView
@@ -25,7 +18,7 @@ class RecyclerAdapter(private val images: ArrayList<ImageDtoOut>) :
     private var onItemClickListener: OnItemClickListener? = null
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val image = itemView.findViewById<ImageView>(R.id.photoImage)
+        val image: ImageView = itemView.findViewById(R.id.photoImage)
         val text: TextView = itemView.findViewById(R.id.photoText)
         val card: CardView = itemView.findViewById(R.id.photoCard)
     }
@@ -43,10 +36,9 @@ class RecyclerAdapter(private val images: ArrayList<ImageDtoOut>) :
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val currentImage = images[position]
         Picasso.get().load(currentImage.url).into(holder.image)
-//        holder.text.text = currentImage.formattedDate
-        Log.d("D1le", currentImage.formattedDate)
+        holder.text.text = currentImage.formattedDate
         holder.card.setOnClickListener {
-            onItemClickListener?.onClick(it)
+            onItemClickListener?.onClick(it, currentImage)
         }
     }
 
@@ -55,6 +47,6 @@ class RecyclerAdapter(private val images: ArrayList<ImageDtoOut>) :
     }
 
     interface OnItemClickListener {
-        fun onClick(v: View)
+        fun onClick(v: View, image: ImageDtoOut)
     }
 }

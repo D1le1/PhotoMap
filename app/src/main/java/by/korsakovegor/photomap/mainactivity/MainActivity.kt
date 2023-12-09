@@ -18,6 +18,7 @@ import by.korsakovegor.photomap.mainactivity.map.MapFragment
 import by.korsakovegor.photomap.mainactivity.photos.adapters.RecyclerAdapter
 import by.korsakovegor.photomap.mainactivity.photos.fragments.PhotoDetailFragment
 import by.korsakovegor.photomap.mainactivity.photos.fragments.PhotosFragment
+import by.korsakovegor.photomap.models.ImageDtoOut
 import com.google.android.material.navigation.NavigationView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -94,10 +95,12 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         fragmentTransaction.commit()
     }
 
-    override fun onClick(v: View) {
+    override fun onClick(v: View, image: ImageDtoOut) {
         val anim = AnimationUtils.loadAnimation(this, R.anim.button_state)
         v.startAnimation(anim)
-        openFragment(PhotoDetailFragment(), true)
+        val bundle = Bundle()
+        bundle.putSerializable("image", image)
+        openFragment(PhotoDetailFragment.getInstance(bundle), true)
     }
 
 

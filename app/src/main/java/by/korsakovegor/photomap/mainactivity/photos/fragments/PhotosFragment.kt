@@ -1,7 +1,6 @@
 package by.korsakovegor.photomap.mainactivity.photos.fragments
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,9 +9,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import by.korsakovegor.photomap.databinding.FragmentPhotosLayoutBinding
 import by.korsakovegor.photomap.mainactivity.photos.adapters.RecyclerAdapter
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import by.korsakovegor.photomap.models.ImageDtoOut
 
 class PhotosFragment() : Fragment() {
     private lateinit var binding: FragmentPhotosLayoutBinding
@@ -37,7 +34,8 @@ class PhotosFragment() : Fragment() {
         recycler.layoutManager = layoutManager
 
         viewModel.images.observe(viewLifecycleOwner){
-            val adapter = RecyclerAdapter(it)
+            val images = it.reversed() as ArrayList<ImageDtoOut>
+            val adapter = RecyclerAdapter(images)
             adapter.setOnItemClickListener(activity as RecyclerAdapter.OnItemClickListener)
             recycler.adapter = adapter
         }
