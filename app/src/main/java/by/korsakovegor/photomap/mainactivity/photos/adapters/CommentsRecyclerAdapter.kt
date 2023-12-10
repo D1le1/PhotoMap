@@ -44,7 +44,7 @@ class CommentsRecyclerAdapter() :
         holder.commentDate.text = currentComment.time
 
         holder.commentCard.setOnLongClickListener {
-            onCommentLongClickListener?.onCommentLongClick(it, currentComment)
+            onCommentLongClickListener?.onCommentLongClick(currentComment, position)
             return@setOnLongClickListener false
         }
     }
@@ -60,11 +60,17 @@ class CommentsRecyclerAdapter() :
         notifyItemInserted(0)
     }
 
+    fun deleteItem(pos: Int)
+    {
+        comments.removeAt(pos)
+        notifyItemRemoved(pos)
+    }
+
     fun setOnCommentLongClick(listener: OnCommentLongClickListener){
         onCommentLongClickListener = listener
     }
 
     interface OnCommentLongClickListener {
-        fun onCommentLongClick(v: View, commentDtoOut: CommentDtoOut)
+        fun onCommentLongClick(commentDtoOut: CommentDtoOut, pos: Int)
     }
 }

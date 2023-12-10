@@ -67,6 +67,9 @@ class PhotosFragment() : Fragment(), ImageRecyclerAdapter.OnImageClickListener,
         viewModel.images.observe(viewLifecycleOwner) {
             adapter.updateData(it)
         }
+        viewModel.deletedItem.observe(viewLifecycleOwner){
+            adapter.deleteItem(it)
+        }
     }
 
     override fun onDestroy() {
@@ -95,7 +98,7 @@ class PhotosFragment() : Fragment(), ImageRecyclerAdapter.OnImageClickListener,
     }
 
     @RequiresApi(Build.VERSION_CODES.S)
-    override fun onImageLongClick(v: View, image: ImageDtoOut) {
+    override fun onImageLongClick(image: ImageDtoOut, pos: Int) {
         longClicked = true
         val vib =
             activity?.getSystemService(AppCompatActivity.VIBRATOR_MANAGER_SERVICE) as VibratorManager
@@ -106,7 +109,7 @@ class PhotosFragment() : Fragment(), ImageRecyclerAdapter.OnImageClickListener,
             "Are you sure you want to delete this image?"
         )
         { _, _ ->
-            Log.d("D1le", "Image deleted")
+            viewModel.deleteImage(image, pos)
         }
 
     }

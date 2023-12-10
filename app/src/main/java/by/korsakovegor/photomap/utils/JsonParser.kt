@@ -84,7 +84,7 @@ class JsonParser {
         fun jsonToComment(jsonResponse: String): CommentDtoOut? {
             val jsonObject = JSONObject(jsonResponse)
             val status = jsonObject.getInt("status")
-            if(status == 200){
+            if (status == 200) {
                 val jsonDataObject = jsonObject.getJSONObject("data")
                 val id = jsonDataObject.getInt("id")
                 val date = jsonDataObject.getLong("date")
@@ -94,6 +94,12 @@ class JsonParser {
             }
 
             return null
+        }
+
+        fun jsonCheckDelete(jsonResponse: String): Boolean {
+            val jsonObject = JSONObject(jsonResponse)
+            val status = jsonObject.getInt("status")
+            return status == 200
         }
     }
 }

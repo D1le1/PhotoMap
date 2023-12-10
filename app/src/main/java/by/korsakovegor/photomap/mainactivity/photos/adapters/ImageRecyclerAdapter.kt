@@ -42,7 +42,7 @@ class ImageRecyclerAdapter :
             onItemClickListener?.onImageClick(it, currentImage)
         }
         holder.card.setOnLongClickListener {
-            onItemLongClickListener?.onImageLongClick(it, currentImage)
+            onItemLongClickListener?.onImageLongClick(currentImage, position)
             return@setOnLongClickListener false
         }
     }
@@ -61,11 +61,16 @@ class ImageRecyclerAdapter :
         notifyDataSetChanged()
     }
 
+    fun deleteItem(pos: Int){
+        images.removeAt(pos)
+        notifyItemRemoved(pos)
+    }
+
     interface OnImageClickListener {
-        fun onImageClick(v: View, image: ImageDtoOut): Unit
+        fun onImageClick(v: View, image: ImageDtoOut)
     }
 
     interface OnImageLongClickListener {
-        fun onImageLongClick(v: View, image: ImageDtoOut)
+        fun onImageLongClick(image: ImageDtoOut, pos: Int)
     }
 }

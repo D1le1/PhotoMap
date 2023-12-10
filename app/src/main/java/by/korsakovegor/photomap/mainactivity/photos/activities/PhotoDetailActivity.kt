@@ -1,25 +1,16 @@
 package by.korsakovegor.photomap.mainactivity.photos.activities
 
-import android.app.Dialog
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.Color
 import android.graphics.drawable.BitmapDrawable
-import android.graphics.drawable.ColorDrawable
 import android.os.Build
 import android.os.Bundle
-import android.os.VibrationEffect
-import android.os.Vibrator
 import android.os.VibratorManager
 import android.util.Base64
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.View
 import android.view.animation.AnimationUtils
 import androidx.annotation.RequiresApi
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import by.korsakovegor.photomap.R
@@ -85,6 +76,10 @@ class PhotoDetailActivity : AppCompatActivity(),
 
         viewModel.comment.observe(this) {
             adapter.addItem(it)
+        }
+
+        viewModel.deletedItem.observe(this){
+            adapter.deleteItem(it)
         }
 
         binding.sendButton.setOnClickListener {
@@ -161,13 +156,13 @@ class PhotoDetailActivity : AppCompatActivity(),
     }
 
     @RequiresApi(Build.VERSION_CODES.S)
-    override fun onCommentLongClick(v: View, commentDtoOut: CommentDtoOut) {
+    override fun onCommentLongClick(comment: CommentDtoOut, pos: Int) {
         val vib = getSystemService(VIBRATOR_MANAGER_SERVICE) as VibratorManager
         Utils.doVibrate(vib)
 
         Utils.showDeleteAlertDialog(this, "Are you sure you want to delete comment?")
         { _, _ ->
-            Log.d("D1le", "Comment deleted")
+            viewModel.deleteComment(comment, image?.id, pos)
         }
     }
 }

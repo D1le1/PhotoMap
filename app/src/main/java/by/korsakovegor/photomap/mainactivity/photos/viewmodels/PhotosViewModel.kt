@@ -11,7 +11,6 @@ import by.korsakovegor.photomap.utils.JsonParser
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -25,6 +24,9 @@ class PhotosViewModel : ViewModel() {
 
     private val _comment = MutableLiveData<CommentDtoOut>()
     val comment: LiveData<CommentDtoOut> get() = _comment
+
+    private val _deletedItem = MutableLiveData<Int>()
+    val deletedItem: LiveData<Int> get() = _deletedItem
 
     fun getImages() {
         CoroutineScope(Dispatchers.IO).launch {
@@ -56,8 +58,29 @@ class PhotosViewModel : ViewModel() {
                 sendPostRequest(url, JsonParser.commentToJson(comment), accept, contentType, token)
             Log.d("D1le", response)
             val resComment = JsonParser.jsonToComment(response)
-            if(resComment != null)
+            if (resComment != null)
                 _comment.postValue(resComment)
+        }
+    }
+
+    fun deleteComment(comment: CommentDtoOut, imageId: Int?, pos: Int) {
+        val url = "https://junior.balinasoft.com/api/image/$imageId/comment/${comment.id}"
+        val token = "6U5f0Hvae8OgyKpfWdnnW7l3Euvdw0TlFrlztYubaVZ59J4tKIfjd23MaAbWseXP"
+        CoroutineScope(Dispatchers.IO).launch {
+            val response = sendDeleteRequest(url, token)
+            Log.d("D1le", response)
+            if (JsonParser.jsonCheckDelete(response))
+                _deletedItem.postValue(pos)
+        }
+    }
+
+    fun deleteImage(image: ImageDtoOut, pos: Int) {
+        val url = "https://junior.balinasoft.com/api/image/${image.id}"
+        val token = "6U5f0Hvae8OgyKpfWdnnW7l3Euvdw0TlFrlztYubaVZ59J4tKIfjd23MaAbWseXP"
+        CoroutineScope(Dispatchers.IO).launch {
+            val response = sendDeleteRequest(url, token)
+            if (JsonParser.jsonCheckDelete(response))
+                _deletedItem.postValue(pos)
         }
     }
 
@@ -89,6 +112,18 @@ class PhotosViewModel : ViewModel() {
         val request =
             Request.Builder().url(url).post(requestBody).addHeader("accept", accept)
                 .addHeader("Content-Type", contentType)
+                .addHeader("Access-Token", accessToken)
+                .build()
+
+        val response = client.newCall(request).execute()
+        return response.body?.string() ?: ""
+    }
+
+    private fun sendDeleteRequest(url: String, accessToken: String): String {
+        val client = OkHttpClient()
+
+        val request =
+            Request.Builder().url(url).delete().addHeader("accept", "*/*")
                 .addHeader("Access-Token", accessToken)
                 .build()
 
