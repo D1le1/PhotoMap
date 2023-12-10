@@ -62,7 +62,10 @@ class ImageRecyclerAdapter :
     }
 
     fun deleteItem(pos: Int){
-        images.removeAt(pos)
+        if(pos == images.size)
+            images.removeAt(images.size-1)
+        else
+            images.removeAt(pos)
         notifyItemRemoved(pos)
     }
 

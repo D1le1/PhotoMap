@@ -80,6 +80,8 @@ class PhotosFragment(private val user: SignUserOutDto? = null) : Fragment(),
         }
         viewModel.deletedItem.observe(viewLifecycleOwner) {
             adapter.deleteItem(it)
+            if(adapter.itemCount == 0)
+                binding.noImages.visibility = View.VISIBLE
             binding.swipeRefreshLayout.isRefreshing = false
         }
 
