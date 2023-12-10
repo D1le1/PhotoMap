@@ -1,4 +1,4 @@
-package by.korsakovegor.photomap.mainactivity.photos.viewmodels
+package by.korsakovegor.photomap.mainactivity
 
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.LiveData

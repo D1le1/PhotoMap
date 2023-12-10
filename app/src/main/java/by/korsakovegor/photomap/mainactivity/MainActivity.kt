@@ -10,24 +10,19 @@ import android.view.animation.AnimationUtils
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
-import androidx.constraintlayout.motion.widget.MotionLayout
 import androidx.core.view.GravityCompat
-import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
 import androidx.lifecycle.ViewModelProvider
 import by.korsakovegor.photomap.databinding.ActivityMainBinding
 import by.korsakovegor.photomap.mainactivity.map.MapFragment
+import by.korsakovegor.photomap.mainactivity.photos.activities.PhotoDetailActivity
 import by.korsakovegor.photomap.mainactivity.photos.adapters.ImageRecyclerAdapter
-import by.korsakovegor.photomap.mainactivity.photos.fragments.PhotoDetailFragment
 import by.korsakovegor.photomap.mainactivity.photos.fragments.PhotosFragment
-import by.korsakovegor.photomap.mainactivity.photos.viewmodels.MainViewModel
-import by.korsakovegor.photomap.mainactivity.photos.viewmodels.PhotosViewModel
 import by.korsakovegor.photomap.models.ImageDtoOut
 import com.google.android.material.navigation.NavigationView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -91,7 +86,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         fragmentTransaction.commit()
     }
 
-    @RequiresApi(34)
+
     override fun onImageClick(v: View, image: ImageDtoOut) {
         val anim = AnimationUtils.loadAnimation(this, R.anim.button_state)
         v.startAnimation(anim)

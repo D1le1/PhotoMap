@@ -30,7 +30,7 @@
 
         </activity>
 
-        <activity android:name=".mainactivity.PhotoDetailActivity"/>
+        <activity android:name=".mainactivity.photos.activities.PhotoDetailActivity"/>
     </application>
 
 </manifest>

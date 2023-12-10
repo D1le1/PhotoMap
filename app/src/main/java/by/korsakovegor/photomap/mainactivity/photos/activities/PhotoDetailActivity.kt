@@ -1,4 +1,4 @@
-package by.korsakovegor.photomap.mainactivity
+package by.korsakovegor.photomap.mainactivity.photos.activities
 
 import android.content.Context
 import android.graphics.Bitmap
@@ -7,6 +7,7 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Base64
 import android.util.Log
+import android.view.View
 import android.view.animation.AnimationUtils
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
@@ -15,7 +16,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import by.korsakovegor.photomap.R
 import by.korsakovegor.photomap.databinding.DetailPhotoLayoutBinding
 import by.korsakovegor.photomap.mainactivity.photos.adapters.CommentsRecyclerAdapter
-import by.korsakovegor.photomap.mainactivity.photos.fragments.PhotoDetailFragment
 import by.korsakovegor.photomap.mainactivity.photos.viewmodels.PhotosViewModel
 import by.korsakovegor.photomap.models.CommentDtoIn
 import by.korsakovegor.photomap.models.CommentDtoOut
@@ -36,7 +36,7 @@ import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.util.Date
 
-class PhotoDetailActivity : AppCompatActivity() {
+class PhotoDetailActivity : AppCompatActivity(), CommentsRecyclerAdapter.OnCommentLongClickListener {
     private lateinit var binding: DetailPhotoLayoutBinding
     private var image: ImageDtoOut? = null
     private lateinit var viewModel: PhotosViewModel
@@ -65,6 +65,7 @@ class PhotoDetailActivity : AppCompatActivity() {
         recycler.layoutManager = layoutManager
 
         val adapter = CommentsRecyclerAdapter()
+        adapter.setOnCommentLongClick(this)
         recycler.adapter = adapter
 
         viewModel.comments.observe(this) {
@@ -138,5 +139,9 @@ class PhotoDetailActivity : AppCompatActivity() {
         bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
         val imageBytes = outputStream.toByteArray()
         return Base64.encodeToString(imageBytes, Base64.DEFAULT)
+    }
+
+    override fun onCommentLongClick(v: View, commentDtoOut: CommentDtoOut) {
+        Log.d("D1le", "Long click: ${commentDtoOut.text} imageid: ${image?.id}")
     }
 }

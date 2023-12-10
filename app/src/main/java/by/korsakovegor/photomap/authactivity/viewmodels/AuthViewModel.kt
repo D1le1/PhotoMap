@@ -1,4 +1,4 @@
-package by.korsakovegor.photomap.authactivity
+package by.korsakovegor.photomap.authactivity.viewmodels
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData

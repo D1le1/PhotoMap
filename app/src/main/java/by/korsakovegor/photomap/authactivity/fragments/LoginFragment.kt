@@ -1,22 +1,14 @@
 package by.korsakovegor.photomap.authactivity.fragments
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
-import by.korsakovegor.photomap.authactivity.AuthViewModel
+import by.korsakovegor.photomap.authactivity.viewmodels.AuthViewModel
 import by.korsakovegor.photomap.databinding.FragmentLoginLayoutBinding
 import by.korsakovegor.photomap.models.SignUserDtoIn
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.RequestBody.Companion.toRequestBody
 
 class LoginFragment : Fragment() {
 
