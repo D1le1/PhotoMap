@@ -131,13 +131,6 @@ class PhotoDetailActivity : AppCompatActivity(),
                 binding.swipeRefreshLayout.isRefreshing = false
             }
         }
-
-        val date = Date()
-        val time = date.time / 1000
-        CoroutineScope(Dispatchers.IO).launch {
-            val base = drawableToBase64(this@PhotoDetailActivity, R.drawable.image2)
-//            uploadImageToServer(base, time, 20.1, 20.1)
-        }
     }
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
@@ -145,49 +138,6 @@ class PhotoDetailActivity : AppCompatActivity(),
         image = intent.getSerializableExtra("image", ImageDtoOut::class.java)
         Picasso.get().load(image?.url).into(binding.photo)
         binding.time.text = image?.time
-    }
-
-    fun uploadImageToServer(base64Image: String, date: Long, lat: Double, lng: Double) {
-        val jsonBody = JSONObject()
-            .put("base64Image", base64Image)
-            .put("date", date)
-            .put("lat", lat)
-            .put("lng", lng)
-            .toString()
-
-        val mediaType = "application/json;charset=UTF-8".toMediaType()
-        val requestBody = jsonBody.toRequestBody(mediaType)
-
-        val request = Request.Builder()
-            .url("https://junior.balinasoft.com/api/image")
-            .post(requestBody)
-            .addHeader("accept", "application/json;charset=UTF-8")
-            .addHeader(
-                "Access-Token",
-                "6U5f0Hvae8OgyKpfWdnnW7l3Euvdw0TlFrlztYubaVZ59J4tKIfjd23MaAbWseXP"
-            )
-            .build()
-
-        val client = OkHttpClient()
-        client.newCall(request).enqueue(object : Callback {
-            override fun onFailure(call: Call, e: IOException) {
-                // Обработка ошибок
-                Log.d("D1le", e.printStackTrace().toString())
-            }
-
-            override fun onResponse(call: Call, response: Response) {
-                Log.d("D1le", response.body?.string().toString())
-            }
-        })
-    }
-
-    private fun drawableToBase64(context: Context?, drawableId: Int): String {
-        val drawable = context?.getDrawable(drawableId)
-        val bitmap = (drawable as BitmapDrawable).bitmap
-        val outputStream = ByteArrayOutputStream()
-        bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
-        val imageBytes = outputStream.toByteArray()
-        return Base64.encodeToString(imageBytes, Base64.DEFAULT)
     }
 
     @RequiresApi(Build.VERSION_CODES.S)

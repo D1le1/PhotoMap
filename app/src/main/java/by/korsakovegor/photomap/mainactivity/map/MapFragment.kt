@@ -60,10 +60,6 @@ class MapFragment(private val user: SignUserOutDto?) : Fragment(), OnMapReadyCal
 
     override fun onMapReady(map: GoogleMap) {
         googleMap = map
-
-        val latLng = LatLng(20.11, 20.1)
-        googleMap!!.addMarker(MarkerOptions().position(latLng))
-        googleMap!!.moveCamera(CameraUpdateFactory.newLatLng(latLng))
     }
 
     override fun onResume() {
