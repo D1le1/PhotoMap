@@ -129,12 +129,17 @@ class PhotosFragment(private val user: SignUserOutDto? = null) : Fragment(),
         isLongClicked = false
     }
 
-    @RequiresApi(Build.VERSION_CODES.S)
+
     override fun onImageLongClick(image: ImageDtoOut, pos: Int) {
         isLongClicked = true
-        val vib =
-            activity?.getSystemService(AppCompatActivity.VIBRATOR_MANAGER_SERVICE) as VibratorManager
-        Utils.doVibrate(vib)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val vib =
+                activity?.getSystemService(AppCompatActivity.VIBRATOR_MANAGER_SERVICE) as VibratorManager
+            Utils.doVibrate(vib)
+        } else {
+
+        }
 
         Utils.showAlertDialog(
             requireContext(),

@@ -50,7 +50,12 @@ class PhotoDetailActivity : AppCompatActivity(),
         binding = DetailPhotoLayoutBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val user = intent.getSerializableExtra("user", SignUserOutDto::class.java)
+        val user = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            intent.getSerializableExtra("user", SignUserOutDto::class.java)
+        }else
+            intent.getSerializableExtra("user") as SignUserOutDto
+
+
         viewModel = ViewModelProvider(this)[PhotosViewModel::class.java]
         viewModel.setUserToken(user?.token ?: "")
 
@@ -133,9 +138,11 @@ class PhotoDetailActivity : AppCompatActivity(),
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     fun loadImageData() {
-        image = intent.getSerializableExtra("image", ImageDtoOut::class.java)
+        image = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            intent.getSerializableExtra("image", ImageDtoOut::class.java)
+        }else
+            intent.getSerializableExtra("image") as ImageDtoOut
         Picasso.get().load(image?.url).into(binding.photo)
         binding.time.text = image?.time
     }

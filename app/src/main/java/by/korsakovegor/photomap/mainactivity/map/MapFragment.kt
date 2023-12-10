@@ -81,4 +81,5 @@ class MapFragment(private val user: SignUserOutDto?) : Fragment(), OnMapReadyCal
         super.onSaveInstanceState(outState)
         mapView?.onSaveInstanceState(outState)
     }
+
 }

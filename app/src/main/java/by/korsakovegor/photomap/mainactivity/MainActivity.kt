@@ -44,15 +44,20 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     private lateinit var binding: ActivityMainBinding
     private lateinit var toggle: ActionBarDrawerToggle
     private lateinit var viewModel: MainViewModel
+    private lateinit var fragmentTransaction: FragmentTransaction
     private var user: SignUserOutDto? = null
 
-    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        user = intent.getSerializableExtra("user", SignUserOutDto::class.java)
+        user = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            intent.getSerializableExtra("user", SignUserOutDto::class.java)
+        }else
+            intent.getSerializableExtra("user") as SignUserOutDto
+
         binding.navigationView.getHeaderView(0).findViewById<TextView>(R.id.usernameText).text =
             user?.login
 
@@ -95,7 +100,11 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             override fun handleOnBackPressed() {
                 if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
                     binding.drawerLayout.closeDrawer(GravityCompat.START)
-                } else {
+                }else if(supportFragmentManager.findFragmentById(R.id.fragment_container) is MapFragment) {
+                    viewModel.setFragment(PhotosFragment(user))
+                    binding.navigationView.setCheckedItem(R.id.photos)
+                }
+                else {
                     finish()
                 }
             }
@@ -112,7 +121,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     private fun openFragment(fragment: Fragment) {
-        val fragmentTransaction = supportFragmentManager.beginTransaction()
+        fragmentTransaction = supportFragmentManager.beginTransaction()
         fragmentTransaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
         fragmentTransaction.replace(R.id.fragment_container, fragment)
         fragmentTransaction.commit()

@@ -53,7 +53,6 @@ class MainViewModel: ViewModel() {
         val client = OkHttpClient()
         client.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
-                // Обработка ошибок
                 Log.d("D1le", e.printStackTrace().toString())
             }
 
