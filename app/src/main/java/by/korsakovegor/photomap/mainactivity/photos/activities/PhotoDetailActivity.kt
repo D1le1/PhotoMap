@@ -17,7 +17,6 @@ import by.korsakovegor.photomap.R
 import by.korsakovegor.photomap.databinding.DetailPhotoLayoutBinding
 import by.korsakovegor.photomap.mainactivity.photos.adapters.CommentsRecyclerAdapter
 import by.korsakovegor.photomap.mainactivity.photos.viewmodels.PhotosViewModel
-import by.korsakovegor.photomap.mainactivity.photos.viewmodels.PhotosViewModelFactory
 import by.korsakovegor.photomap.models.CommentDtoIn
 import by.korsakovegor.photomap.models.CommentDtoOut
 import by.korsakovegor.photomap.models.ImageDtoOut
@@ -52,8 +51,8 @@ class PhotoDetailActivity : AppCompatActivity(),
         setContentView(binding.root)
 
         val user = intent.getSerializableExtra("user", SignUserOutDto::class.java)
-        val viewModelFactory = PhotosViewModelFactory(user!!)
-        viewModel = ViewModelProvider(this, viewModelFactory)[PhotosViewModel::class.java]
+        viewModel = ViewModelProvider(this)[PhotosViewModel::class.java]
+        viewModel.setUserToken(user?.token ?: "")
 
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)

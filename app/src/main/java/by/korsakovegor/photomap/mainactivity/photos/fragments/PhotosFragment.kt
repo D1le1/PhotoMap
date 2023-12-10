@@ -20,7 +20,6 @@ import by.korsakovegor.photomap.databinding.FragmentPhotosLayoutBinding
 import by.korsakovegor.photomap.mainactivity.photos.activities.PhotoDetailActivity
 import by.korsakovegor.photomap.mainactivity.photos.adapters.ImageRecyclerAdapter
 import by.korsakovegor.photomap.mainactivity.photos.viewmodels.PhotosViewModel
-import by.korsakovegor.photomap.mainactivity.photos.viewmodels.PhotosViewModelFactory
 import by.korsakovegor.photomap.models.ImageDtoOut
 import by.korsakovegor.photomap.models.SignUserOutDto
 import by.korsakovegor.photomap.utils.Utils
@@ -40,11 +39,10 @@ class PhotosFragment(private val user: SignUserOutDto? = null) : Fragment(),
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val viewModeFactory = PhotosViewModelFactory(user!!)
-        viewModel = ViewModelProvider(this, viewModeFactory)[PhotosViewModel::class.java]
-        if (Utils.isInternetAvailable(context))
         viewModel = ViewModelProvider(this)[PhotosViewModel::class.java]
+        viewModel.setUserToken(user?.token ?: "")
         if (Utils.isInternetAvailable(requireContext())) {
+            Log.d("D1le", user?.token.toString())
             viewModel.getImages()
         } else
             Utils.showConnectionAlertDialog(requireContext())
@@ -89,9 +87,9 @@ class PhotosFragment(private val user: SignUserOutDto? = null) : Fragment(),
         }
 
         binding.swipeRefreshLayout.setOnRefreshListener {
-            if (Utils.isInternetAvailable(requireContext()))
+            if (Utils.isInternetAvailable(requireContext())) {
                 viewModel.getImages()
-            else {
+            } else {
                 Utils.showConnectionAlertDialog(requireContext())
                 binding.swipeRefreshLayout.isRefreshing = false
             }

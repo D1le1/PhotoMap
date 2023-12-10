@@ -16,7 +16,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 
-class PhotosViewModel(private val user: SignUserOutDto) : ViewModel() {
+class PhotosViewModel : ViewModel() {
 
     private val _images = MutableLiveData<ArrayList<ImageDtoOut>>()
     val images: LiveData<ArrayList<ImageDtoOut>> get() = _images
@@ -33,11 +33,17 @@ class PhotosViewModel(private val user: SignUserOutDto) : ViewModel() {
     private val _error = MutableLiveData<Boolean>()
     val error: LiveData<Boolean> get() = _error
 
+    private val userToken = MutableLiveData<String>()
+
+    fun setUserToken(token: String){
+        userToken.value = token
+    }
+
     fun getImages() {
         val url = "https://junior.balinasoft.com/api/image?page=0"
         CoroutineScope(Dispatchers.IO).launch {
-            val response = sendGetRequest(url, user.token)
-            if (response!!.isNotEmpty()) {
+            val response = sendGetRequest(url, userToken.value.toString())
+            if (response.isNotEmpty()) {
                 val resImages = JsonParser.jsonToImageList(response)
                 if (resImages != null) _images.postValue(resImages)
             } else
@@ -48,7 +54,7 @@ class PhotosViewModel(private val user: SignUserOutDto) : ViewModel() {
     fun getComments(imageId: Int?) {
         val url = "https://junior.balinasoft.com/api/image/$imageId/comment?page=0"
         CoroutineScope(Dispatchers.IO).launch {
-            val response = sendGetRequest(url, user.token)
+            val response = sendGetRequest(url, userToken.value.toString())
             Log.d("D1le", response)
             val resComments = JsonParser.jsonToCommentList(response)
             if (resComments != null) _comments.postValue(resComments)
@@ -62,7 +68,7 @@ class PhotosViewModel(private val user: SignUserOutDto) : ViewModel() {
         val jsonBody = JsonParser.commentToJson(comment)
         CoroutineScope(Dispatchers.IO).launch {
             val response =
-                sendPostRequest(url, jsonBody, accept, contentType, user.token)
+                sendPostRequest(url, jsonBody, accept, contentType, userToken.value.toString())
             Log.d("D1le", response)
             val resComment = JsonParser.jsonToComment(response)
             if (resComment != null) _comment.postValue(resComment)
@@ -72,7 +78,7 @@ class PhotosViewModel(private val user: SignUserOutDto) : ViewModel() {
     fun deleteComment(comment: CommentDtoOut, imageId: Int?, pos: Int) {
         val url = "https://junior.balinasoft.com/api/image/$imageId/comment/${comment.id}"
         CoroutineScope(Dispatchers.IO).launch {
-            val response = sendDeleteRequest(url, user.token)
+            val response = sendDeleteRequest(url, userToken.value.toString())
             Log.d("D1le", response)
             if (JsonParser.jsonCheckDelete(response)) _deletedItem.postValue(pos)
         }
@@ -81,11 +87,11 @@ class PhotosViewModel(private val user: SignUserOutDto) : ViewModel() {
     fun deleteImage(image: ImageDtoOut, pos: Int) {
         val url = "https://junior.balinasoft.com/api/image/${image.id}"
         CoroutineScope(Dispatchers.IO).launch {
-            val response = sendDeleteRequest(url, user.token)
-            if(response.isNotEmpty()) {
+            val response = sendDeleteRequest(url, userToken.value.toString())
+            if (response.isNotEmpty()) {
                 Log.d("D1le", response)
                 if (JsonParser.jsonCheckDelete(response)) _deletedItem.postValue(pos)
-            }else
+            } else
                 _error.postValue(true)
         }
     }
