@@ -111,8 +111,9 @@ class PhotosFragment(private val user: SignUserOutDto?) : Fragment(),
             activity?.getSystemService(AppCompatActivity.VIBRATOR_MANAGER_SERVICE) as VibratorManager
         Utils.doVibrate(vib)
 
-        Utils.showDeleteAlertDialog(
+        Utils.showAlertDialog(
             requireContext(),
+            "Delete Alert",
             "Are you sure you want to delete this image?"
         )
         { _, _ ->

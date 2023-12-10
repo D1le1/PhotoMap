@@ -165,7 +165,7 @@ class PhotoDetailActivity : AppCompatActivity(),
         val vib = getSystemService(VIBRATOR_MANAGER_SERVICE) as VibratorManager
         Utils.doVibrate(vib)
 
-        Utils.showDeleteAlertDialog(this, "Are you sure you want to delete comment?")
+        Utils.showAlertDialog(this, "Delete Alert",  "Are you sure you want to delete comment?")
         { _, _ ->
             viewModel.deleteComment(comment, image?.id, pos)
         }

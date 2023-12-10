@@ -6,7 +6,6 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
 import android.os.VibrationEffect
-import android.os.Vibrator
 import android.os.VibratorManager
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
@@ -22,15 +21,26 @@ class Utils {
             return networkCapabilities?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true
         }
 
-        fun showDeleteAlertDialog(
+        fun showConnectionAlertDialog(context: Context){
+            val builder = AlertDialog.Builder(context)
+            builder.setTitle("Connection Alert")
+                .setMessage("Please check your internet connection")
+                .setPositiveButton("OK") {dialog, _ -> dialog.dismiss()}
+
+            val alertDialog = builder.create()
+            alertDialog.show()
+        }
+
+        fun showAlertDialog(
             context: Context,
+            title: String,
             text: String,
-            l: DialogInterface.OnClickListener
+            l: DialogInterface.OnClickListener?
         ) {
             val builder = AlertDialog.Builder(context)
-            builder.setTitle("Delete Alert")
+            builder.setTitle(title)
                 .setMessage(text)
-                .setPositiveButton("Yes") { dialog, which -> l.onClick(dialog, which) }
+                .setPositiveButton("Yes") { dialog, which -> l?.onClick(dialog, which) }
                 .setNegativeButton("No") { dialog, _ -> dialog.dismiss() }
 
             val alertDialog = builder.create()

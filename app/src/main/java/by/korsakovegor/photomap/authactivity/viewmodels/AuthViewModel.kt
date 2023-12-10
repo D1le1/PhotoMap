@@ -28,11 +28,15 @@ class AuthViewModel : ViewModel() {
                 "https://junior.balinasoft.com/api/account/signin",
                 JsonParser.userToJson(user)
             )
-            val user = JsonParser.jsonToUser(response)
-            if (user == null)
-                _error.postValue("Invalid user, check your login and password")
-            else
-                _user.postValue(user)
+            if (response.isNotEmpty()) {
+                val user = JsonParser.jsonToUser(response)
+                if (user == null)
+                    _error.postValue("Invalid user, check your login and password")
+                else
+                    _user.postValue(user)
+            } else {
+                _error.postValue("Check your internet connection")
+            }
         }
     }
 
@@ -42,29 +46,36 @@ class AuthViewModel : ViewModel() {
                 "https://junior.balinasoft.com/api/account/signup",
                 JsonParser.userToJson(user)
             )
-            val newUser = JsonParser.jsonToUser(response)
-            if (newUser == null)
-                _error.postValue("User already exists")
-            else {
-                _user.postValue(newUser)
-            }
+            if(response.isNotEmpty()) {
+                val newUser = JsonParser.jsonToUser(response)
+                if (newUser == null)
+                    _error.postValue("User already exists")
+                else {
+                    _user.postValue(newUser)
+                }
+            }else
+                _error.postValue("Check your internet connection")
         }
     }
 
-    fun clearUser(){
+    fun clearUser() {
         _user.postValue(null)
     }
 
     private fun sendPostRequest(url: String, jsonBody: String): String {
-        val client = OkHttpClient()
+        return try {
+            val client = OkHttpClient()
 
-        val requestBody = jsonBody.toRequestBody()
+            val requestBody = jsonBody.toRequestBody()
 
-        val request =
-            Request.Builder().url(url).post(requestBody).addHeader("accept", "application/json")
-                .addHeader("Content-Type", "application/json").build()
+            val request =
+                Request.Builder().url(url).post(requestBody).addHeader("accept", "application/json")
+                    .addHeader("Content-Type", "application/json").build()
 
-        val response = client.newCall(request).execute()
-        return response.body?.string() ?: ""
+            val response = client.newCall(request).execute()
+            response.body?.string() ?: ""
+        } catch (ex: Exception) {
+            ""
+        }
     }
 }

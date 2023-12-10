@@ -3,6 +3,7 @@ package by.korsakovegor.photomap.authactivity.fragments
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -14,6 +15,7 @@ import by.korsakovegor.photomap.authactivity.viewmodels.AuthViewModel
 import by.korsakovegor.photomap.databinding.FragmentLoginLayoutBinding
 import by.korsakovegor.photomap.mainactivity.MainActivity
 import by.korsakovegor.photomap.models.SignUserDtoIn
+import by.korsakovegor.photomap.utils.Utils
 
 class LoginFragment : Fragment() {
 
@@ -35,30 +37,35 @@ class LoginFragment : Fragment() {
         viewModel = ViewModelProvider(this)[AuthViewModel::class.java]
 
         binding.loginButton.setOnClickListener {
-            val login = binding.loginEditText.text.toString()
-            val password = binding.passwordEditText.text.toString()
+            if (Utils.isInternetAvailable(requireContext())) {
+                val login = binding.loginEditText.text.toString()
+                val password = binding.passwordEditText.text.toString()
 
-            val user = SignUserDtoIn(login, password)
-            val results = user.validateUser()
+                val user = SignUserDtoIn(login, password)
+                val results = user.validateUser()
 
-            var isValid = true
+                var isValid = true
 
-            if (results[1] == 1) {
-                binding.loginEditText.error = "Login must be between 4 and 32"
-                isValid = false
+                if (results[1] == 1) {
+                    binding.loginEditText.error = "Login must be between 4 and 32"
+                    isValid = false
+                }
+                if (results[0] == 1) {
+                    binding.loginEditText.error = "Login must match [a-z0-9_\\-.@]+"
+                    isValid = false
+                }
+                if (results[2] == 1) {
+                    binding.passwordEditText.error = "Password must be between 8 and 500"
+                    isValid = false
+                }
+
+                if (isValid) {
+                    binding.swipeRefreshLayout.isRefreshing = true
+                    viewModel.loginUser(user)
+                }
+            } else {
+                Utils.showConnectionAlertDialog(requireContext())
             }
-            if (results[0] == 1) {
-                binding.loginEditText.error = "Login must match [a-z0-9_\\-.@]+"
-                isValid = false
-            }
-            if (results[2] == 1) {
-                binding.passwordEditText.error = "Password must be between 8 and 500"
-                isValid = false
-            }
-
-            if (isValid)
-                viewModel.loginUser(user)
-
         }
 
         viewModel.user.observe(viewLifecycleOwner) {
@@ -66,10 +73,12 @@ class LoginFragment : Fragment() {
                 val intent = Intent(activity, MainActivity::class.java)
                 intent.putExtra("user", it)
                 resultLauncher.launch(intent)
+                binding.swipeRefreshLayout.isRefreshing = false
             }
         }
 
         viewModel.error.observe(viewLifecycleOwner) {
+            binding.swipeRefreshLayout.isRefreshing = false
             binding.error.visibility = View.VISIBLE
             binding.error.text = it
         }
