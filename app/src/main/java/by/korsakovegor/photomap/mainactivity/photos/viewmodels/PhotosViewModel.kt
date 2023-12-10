@@ -30,12 +30,18 @@ class PhotosViewModel(private val user: SignUserOutDto) : ViewModel() {
     private val _deletedItem = MutableLiveData<Int>()
     val deletedItem: LiveData<Int> get() = _deletedItem
 
+    private val _error = MutableLiveData<Boolean>()
+    val error: LiveData<Boolean> get() = _error
+
     fun getImages() {
         val url = "https://junior.balinasoft.com/api/image?page=0"
         CoroutineScope(Dispatchers.IO).launch {
             val response = sendGetRequest(url, user.token)
-            val resImages = JsonParser.jsonToImageList(response)
-            if (resImages != null) _images.postValue(resImages)
+            if (response!!.isNotEmpty()) {
+                val resImages = JsonParser.jsonToImageList(response)
+                if (resImages != null) _images.postValue(resImages)
+            } else
+                _error.postValue(true)
         }
     }
 
@@ -76,43 +82,59 @@ class PhotosViewModel(private val user: SignUserOutDto) : ViewModel() {
         val url = "https://junior.balinasoft.com/api/image/${image.id}"
         CoroutineScope(Dispatchers.IO).launch {
             val response = sendDeleteRequest(url, user.token)
-            Log.d("D1le", response)
-            if (JsonParser.jsonCheckDelete(response)) _deletedItem.postValue(pos)
+            if(response.isNotEmpty()) {
+                Log.d("D1le", response)
+                if (JsonParser.jsonCheckDelete(response)) _deletedItem.postValue(pos)
+            }else
+                _error.postValue(true)
         }
     }
 
     private fun sendGetRequest(url: String, token: String): String {
-        val client = OkHttpClient()
+        return try {
+            val client = OkHttpClient()
 
-        val request = Request.Builder().url(url).addHeader("accept", "*/*").addHeader(
+            val request = Request.Builder().url(url).addHeader("accept", "*/*").addHeader(
                 "Access-Token", token
             ).build()
 
-        val response = client.newCall(request).execute()
-        return response.body?.string() ?: ""
+            val response = client.newCall(request).execute()
+            response.body?.string() ?: ""
+        } catch (_: Exception) {
+            ""
+        }
     }
 
     private fun sendPostRequest(
         url: String, jsonBody: String, accept: String, contentType: String, accessToken: String
     ): String {
-        val client = OkHttpClient()
+        return try {
+            val client = OkHttpClient()
 
-        val requestBody = jsonBody.toRequestBody()
+            val requestBody = jsonBody.toRequestBody()
 
-        val request = Request.Builder().url(url).post(requestBody).addHeader("accept", accept)
-            .addHeader("Content-Type", contentType).addHeader("Access-Token", accessToken).build()
+            val request = Request.Builder().url(url).post(requestBody).addHeader("accept", accept)
+                .addHeader("Content-Type", contentType).addHeader("Access-Token", accessToken)
+                .build()
 
-        val response = client.newCall(request).execute()
-        return response.body?.string() ?: ""
+            val response = client.newCall(request).execute()
+            response.body?.string() ?: ""
+        } catch (_: Exception) {
+            ""
+        }
     }
 
     private fun sendDeleteRequest(url: String, accessToken: String): String {
-        val client = OkHttpClient()
+        return try {
+            val client = OkHttpClient()
 
-        val request = Request.Builder().url(url).delete().addHeader("accept", "*/*")
-            .addHeader("Access-Token", accessToken).build()
+            val request = Request.Builder().url(url).delete().addHeader("accept", "*/*")
+                .addHeader("Access-Token", accessToken).build()
 
-        val response = client.newCall(request).execute()
-        return response.body?.string() ?: ""
+            val response = client.newCall(request).execute()
+            response.body?.string() ?: ""
+        } catch (_: Exception) {
+            ""
+        }
     }
 }

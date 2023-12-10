@@ -18,4 +18,6 @@
     <string name="enter_comment">Enter comment</string>
 
     <string name="comment">Comment</string>
+
+    <string name="no_images">There is no one image</string>
 </resources>

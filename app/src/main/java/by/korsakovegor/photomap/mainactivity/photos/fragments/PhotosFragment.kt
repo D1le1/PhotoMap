@@ -24,29 +24,30 @@ import by.korsakovegor.photomap.mainactivity.photos.viewmodels.PhotosViewModelFa
 import by.korsakovegor.photomap.models.ImageDtoOut
 import by.korsakovegor.photomap.models.SignUserOutDto
 import by.korsakovegor.photomap.utils.Utils
-import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-class PhotosFragment(private val user: SignUserOutDto?) : Fragment(),
+class PhotosFragment(private val user: SignUserOutDto? = null) : Fragment(),
     ImageRecyclerAdapter.OnImageClickListener,
     ImageRecyclerAdapter.OnImageLongClickListener {
 
     private lateinit var binding: FragmentPhotosLayoutBinding
     private lateinit var viewModel: PhotosViewModel
-    private var longClicked = false
-    private var isOpen = false
+    private var isLongClicked = false
+    private var isPictureOpening = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val viewModeFactory = PhotosViewModelFactory(user!!)
         viewModel = ViewModelProvider(this, viewModeFactory)[PhotosViewModel::class.java]
         if (Utils.isInternetAvailable(context))
+        viewModel = ViewModelProvider(this)[PhotosViewModel::class.java]
+        if (Utils.isInternetAvailable(requireContext())) {
             viewModel.getImages()
-        else
-            view?.let { Snackbar.make(it, "Turn On Internet Please", Snackbar.LENGTH_SHORT).show() }
+        } else
+            Utils.showConnectionAlertDialog(requireContext())
     }
 
     override fun onCreateView(
@@ -60,6 +61,8 @@ class PhotosFragment(private val user: SignUserOutDto?) : Fragment(),
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        if (Utils.isInternetAvailable(requireContext()))
+            binding.swipeRefreshLayout.isRefreshing = true
 
         val recycler = binding.recyclerView
         val layoutManager = GridLayoutManager(context, 3)
@@ -70,10 +73,28 @@ class PhotosFragment(private val user: SignUserOutDto?) : Fragment(),
         adapter.setOnItemLongClickListener(this)
         recycler.adapter = adapter
         viewModel.images.observe(viewLifecycleOwner) {
+            binding.swipeRefreshLayout.isRefreshing = false
             adapter.updateData(it)
+            if (it.size > 0)
+                binding.noImages.visibility = View.GONE
         }
         viewModel.deletedItem.observe(viewLifecycleOwner) {
             adapter.deleteItem(it)
+            binding.swipeRefreshLayout.isRefreshing = false
+        }
+
+        viewModel.error.observe(viewLifecycleOwner) {
+            binding.swipeRefreshLayout.isRefreshing = false
+            Utils.showConnectionAlertDialog(requireContext())
+        }
+
+        binding.swipeRefreshLayout.setOnRefreshListener {
+            if (Utils.isInternetAvailable(requireContext()))
+                viewModel.getImages()
+            else {
+                Utils.showConnectionAlertDialog(requireContext())
+                binding.swipeRefreshLayout.isRefreshing = false
+            }
         }
     }
 
@@ -83,8 +104,8 @@ class PhotosFragment(private val user: SignUserOutDto?) : Fragment(),
     }
 
     override fun onImageClick(v: View, image: ImageDtoOut) {
-        if (!longClicked && !isOpen) {
-            isOpen = true
+        if (!isLongClicked && !isPictureOpening) {
+            isPictureOpening = true
             val anim = AnimationUtils.loadAnimation(activity, R.anim.button_state)
             v.startAnimation(anim)
             CoroutineScope(Dispatchers.Main).launch {
@@ -98,15 +119,15 @@ class PhotosFragment(private val user: SignUserOutDto?) : Fragment(),
                     "imageTrans"
                 )
                 startActivity(intent, options.toBundle())
-                isOpen = false
+                isPictureOpening = false
             }
         }
-        longClicked = false
+        isLongClicked = false
     }
 
     @RequiresApi(Build.VERSION_CODES.S)
     override fun onImageLongClick(image: ImageDtoOut, pos: Int) {
-        longClicked = true
+        isLongClicked = true
         val vib =
             activity?.getSystemService(AppCompatActivity.VIBRATOR_MANAGER_SERVICE) as VibratorManager
         Utils.doVibrate(vib)
@@ -117,7 +138,11 @@ class PhotosFragment(private val user: SignUserOutDto?) : Fragment(),
             "Are you sure you want to delete this image?"
         )
         { _, _ ->
-            viewModel.deleteImage(image, pos)
+            if (Utils.isInternetAvailable(requireContext())) {
+                viewModel.deleteImage(image, pos)
+                binding.swipeRefreshLayout.isRefreshing = true
+            } else
+                Utils.showConnectionAlertDialog(requireContext())
         }
 
     }
