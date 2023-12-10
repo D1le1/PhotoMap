@@ -18,24 +18,24 @@ import okhttp3.RequestBody.Companion.toRequestBody
 
 class PhotosViewModel : ViewModel() {
 
-    private val _images = MutableLiveData<ArrayList<ImageDtoOut>>()
-    val images: LiveData<ArrayList<ImageDtoOut>> get() = _images
+    private val _images = MutableLiveData<ArrayList<ImageDtoOut>?>()
+    val images: LiveData<ArrayList<ImageDtoOut>?> get() = _images
 
-    private val _comments = MutableLiveData<ArrayList<CommentDtoOut>>()
-    val comments: LiveData<ArrayList<CommentDtoOut>> get() = _comments
+    private val _comments = MutableLiveData<ArrayList<CommentDtoOut>?>()
+    val comments: LiveData<ArrayList<CommentDtoOut>?> get() = _comments
 
-    private val _comment = MutableLiveData<CommentDtoOut>()
-    val comment: LiveData<CommentDtoOut> get() = _comment
+    private val _comment = MutableLiveData<CommentDtoOut?>()
+    val comment: LiveData<CommentDtoOut?> get() = _comment
 
     private val _deletedItem = MutableLiveData<Int>()
     val deletedItem: LiveData<Int> get() = _deletedItem
 
-    private val _error = MutableLiveData<Boolean>()
-    val error: LiveData<Boolean> get() = _error
+    private val _error = MutableLiveData<String>()
+    val error: LiveData<String> get() = _error
 
     private val userToken = MutableLiveData<String>()
 
-    fun setUserToken(token: String){
+    fun setUserToken(token: String) {
         userToken.value = token
     }
 
@@ -47,7 +47,7 @@ class PhotosViewModel : ViewModel() {
                 val resImages = JsonParser.jsonToImageList(response)
                 if (resImages != null) _images.postValue(resImages)
             } else
-                _error.postValue(true)
+                _error.postValue("")
         }
     }
 
@@ -55,9 +55,12 @@ class PhotosViewModel : ViewModel() {
         val url = "https://junior.balinasoft.com/api/image/$imageId/comment?page=0"
         CoroutineScope(Dispatchers.IO).launch {
             val response = sendGetRequest(url, userToken.value.toString())
-            Log.d("D1le", response)
-            val resComments = JsonParser.jsonToCommentList(response)
-            if (resComments != null) _comments.postValue(resComments)
+            if (response.isNotEmpty()) {
+                Log.d("D1le", response)
+                val resComments = JsonParser.jsonToCommentList(response)
+                if (resComments != null) _comments.postValue(resComments)
+            } else
+                _error.postValue("")
         }
     }
 
@@ -69,9 +72,12 @@ class PhotosViewModel : ViewModel() {
         CoroutineScope(Dispatchers.IO).launch {
             val response =
                 sendPostRequest(url, jsonBody, accept, contentType, userToken.value.toString())
-            Log.d("D1le", response)
-            val resComment = JsonParser.jsonToComment(response)
-            if (resComment != null) _comment.postValue(resComment)
+            if (response.isNotEmpty()) {
+                Log.d("D1le", response)
+                val resComment = JsonParser.jsonToComment(response)
+                if (resComment != null) _comment.postValue(resComment)
+            } else
+                _error.postValue("")
         }
     }
 
@@ -79,8 +85,15 @@ class PhotosViewModel : ViewModel() {
         val url = "https://junior.balinasoft.com/api/image/$imageId/comment/${comment.id}"
         CoroutineScope(Dispatchers.IO).launch {
             val response = sendDeleteRequest(url, userToken.value.toString())
-            Log.d("D1le", response)
-            if (JsonParser.jsonCheckDelete(response)) _deletedItem.postValue(pos)
+            if (response.isNotEmpty()) {
+                Log.d("D1le", response)
+                if (JsonParser.jsonCheckDelete(response))
+                    _deletedItem.postValue(pos)
+                else
+                    _error.postValue("Something went wrong try it later")
+            } else {
+                _error.postValue("")
+            }
         }
     }
 
@@ -91,8 +104,9 @@ class PhotosViewModel : ViewModel() {
             if (response.isNotEmpty()) {
                 Log.d("D1le", response)
                 if (JsonParser.jsonCheckDelete(response)) _deletedItem.postValue(pos)
+                else _error.postValue("Can't delete image with comments")
             } else
-                _error.postValue(true)
+                _error.postValue("")
         }
     }
 
@@ -105,7 +119,7 @@ class PhotosViewModel : ViewModel() {
             ).build()
 
             val response = client.newCall(request).execute()
-            response.body?.string() ?: ""
+            return response.body?.string() ?: ""
         } catch (_: Exception) {
             ""
         }

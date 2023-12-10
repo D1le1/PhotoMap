@@ -76,7 +76,9 @@ class PhotoDetailFragment : Fragment() {
         recycler.adapter = adapter
 
         viewModel.comments.observe(viewLifecycleOwner){
-            adapter.updateData(it)
+            if (it != null) {
+                adapter.updateData(it)
+            }
         }
 
         val date = Date()

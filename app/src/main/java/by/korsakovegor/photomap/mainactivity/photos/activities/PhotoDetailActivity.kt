@@ -63,8 +63,10 @@ class PhotoDetailActivity : AppCompatActivity(),
         }
 
         loadImageData()
-        Log.d("D1le", "imageid = ${image?.id}")
-        viewModel.getComments(image?.id)
+        if (Utils.isInternetAvailable(this)) {
+            viewModel.getComments(image?.id)
+            binding.swipeRefreshLayout.isRefreshing = true
+        }
 
         val recycler = binding.recyclerView
         val layoutManager = LinearLayoutManager(this)
@@ -75,15 +77,31 @@ class PhotoDetailActivity : AppCompatActivity(),
         recycler.adapter = adapter
 
         viewModel.comments.observe(this) {
-            adapter.updateData(it)
+            binding.swipeRefreshLayout.isRefreshing = false
+            Log.d("D1le", "here")
+            if (it != null) {
+                adapter.updateData(it)
+            }
         }
 
         viewModel.comment.observe(this) {
-            adapter.addItem(it)
+            if (it != null) {
+                adapter.addItem(it)
+            }
         }
 
-        viewModel.deletedItem.observe(this){
+        viewModel.error.observe(this) {
+            binding.swipeRefreshLayout.isRefreshing = false
+            if (it.isEmpty()) {
+                Utils.showConnectionAlertDialog(this)
+            } else {
+                Utils.showAlertDialog(this, "Error", it)
+            }
+        }
+
+        viewModel.deletedItem.observe(this) {
             adapter.deleteItem(it)
+            binding.swipeRefreshLayout.isRefreshing = false
         }
 
         binding.sendButton.setOnClickListener {
@@ -93,12 +111,24 @@ class PhotoDetailActivity : AppCompatActivity(),
             if (binding.commentEditText.text.isEmpty())
                 binding.commentEditText.error = "Comment may not be empty"
             else
-                viewModel.sendComment(
-                    CommentDtoIn(binding.commentEditText.text.toString()),
-                    image?.id
-                )
+                if (Utils.isInternetAvailable(this)) {
+                    binding.swipeRefreshLayout.isRefreshing = true
+                    viewModel.sendComment(
+                        CommentDtoIn(binding.commentEditText.text.toString()),
+                        image?.id
+                    )
+                }
 
             binding.commentEditText.text.clear()
+        }
+
+        binding.swipeRefreshLayout.setOnRefreshListener {
+            if (Utils.isInternetAvailable(this))
+                viewModel.getComments(image?.id)
+            else {
+                Utils.showConnectionAlertDialog(this)
+                binding.swipeRefreshLayout.isRefreshing = false
+            }
         }
 
         val date = Date()
@@ -164,9 +194,14 @@ class PhotoDetailActivity : AppCompatActivity(),
         val vib = getSystemService(VIBRATOR_MANAGER_SERVICE) as VibratorManager
         Utils.doVibrate(vib)
 
-        Utils.showAlertDialog(this, "Delete Alert",  "Are you sure you want to delete comment?")
+        Utils.showAlertDialog(this, "Delete Alert", "Are you sure you want to delete comment?")
         { _, _ ->
-            viewModel.deleteComment(comment, image?.id, pos)
+            if (Utils.isInternetAvailable(this)) {
+                viewModel.deleteComment(comment, image?.id, pos)
+                binding.swipeRefreshLayout.isRefreshing = true
+            } else {
+                Utils.showConnectionAlertDialog(this)
+            }
         }
     }
 }

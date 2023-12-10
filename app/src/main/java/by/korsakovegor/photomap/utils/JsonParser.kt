@@ -99,6 +99,7 @@ class JsonParser {
         fun jsonCheckDelete(jsonResponse: String): Boolean {
             val jsonObject = JSONObject(jsonResponse)
             val status = jsonObject.getInt("status")
+            Log.d("D1le", status.toString())
             return status == 200
         }
     }

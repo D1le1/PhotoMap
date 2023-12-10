@@ -35,6 +35,19 @@ class Utils {
             context: Context,
             title: String,
             text: String,
+        ) {
+            val builder = AlertDialog.Builder(context)
+            builder.setTitle(title)
+                .setMessage(text)
+                .setPositiveButton("OK") { dialog, _ -> dialog.dismiss()}
+            val alertDialog = builder.create()
+            alertDialog.show()
+        }
+
+        fun showAlertDialog(
+            context: Context,
+            title: String,
+            text: String,
             l: DialogInterface.OnClickListener?
         ) {
             val builder = AlertDialog.Builder(context)

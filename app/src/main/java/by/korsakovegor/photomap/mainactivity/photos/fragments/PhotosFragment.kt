@@ -72,9 +72,11 @@ class PhotosFragment(private val user: SignUserOutDto? = null) : Fragment(),
         recycler.adapter = adapter
         viewModel.images.observe(viewLifecycleOwner) {
             binding.swipeRefreshLayout.isRefreshing = false
-            adapter.updateData(it)
-            if (it.size > 0)
-                binding.noImages.visibility = View.GONE
+            if (it != null) {
+                adapter.updateData(it)
+                if (it.size > 0)
+                    binding.noImages.visibility = View.GONE
+            }
         }
         viewModel.deletedItem.observe(viewLifecycleOwner) {
             adapter.deleteItem(it)
@@ -83,7 +85,11 @@ class PhotosFragment(private val user: SignUserOutDto? = null) : Fragment(),
 
         viewModel.error.observe(viewLifecycleOwner) {
             binding.swipeRefreshLayout.isRefreshing = false
-            Utils.showConnectionAlertDialog(requireContext())
+            if (it.isEmpty()) {
+                Utils.showConnectionAlertDialog(requireContext())
+            } else {
+                Utils.showAlertDialog(requireContext(), "Error", it)
+            }
         }
 
         binding.swipeRefreshLayout.setOnRefreshListener {
