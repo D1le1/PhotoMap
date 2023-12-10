@@ -14,7 +14,8 @@ import com.squareup.picasso.Picasso
 class ImageRecyclerAdapter :
     RecyclerView.Adapter<ImageRecyclerAdapter.ViewHolder>() {
 
-    private var onItemClickListener: OnItemClickListener? = null
+    private var onItemClickListener: OnImageClickListener? = null
+    private var onItemLongClickListener: OnImageLongClickListener? = null
     private val images: ArrayList<ImageDtoOut> = arrayListOf()
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -40,10 +41,18 @@ class ImageRecyclerAdapter :
         holder.card.setOnClickListener {
             onItemClickListener?.onImageClick(it, currentImage)
         }
+        holder.card.setOnLongClickListener {
+            onItemLongClickListener?.onImageLongClick(it, currentImage)
+            return@setOnLongClickListener false
+        }
     }
 
-    fun setOnItemClickListener(listener: OnItemClickListener) {
+    fun setOnItemClickListener(listener: OnImageClickListener) {
         onItemClickListener = listener
+    }
+
+    fun setOnItemLongClickListener(listener: OnImageLongClickListener){
+        onItemLongClickListener = listener
     }
 
     fun updateData(newImages: ArrayList<ImageDtoOut>){
@@ -52,7 +61,11 @@ class ImageRecyclerAdapter :
         notifyDataSetChanged()
     }
 
-    interface OnItemClickListener {
-        fun onImageClick(v: View, image: ImageDtoOut)
+    interface OnImageClickListener {
+        fun onImageClick(v: View, image: ImageDtoOut): Unit
+    }
+
+    interface OnImageLongClickListener {
+        fun onImageLongClick(v: View, image: ImageDtoOut)
     }
 }

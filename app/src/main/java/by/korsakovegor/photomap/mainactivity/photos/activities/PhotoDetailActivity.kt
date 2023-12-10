@@ -1,16 +1,25 @@
 package by.korsakovegor.photomap.mainactivity.photos.activities
 
+import android.app.Dialog
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.Color
 import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.ColorDrawable
 import android.os.Build
 import android.os.Bundle
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.os.VibratorManager
 import android.util.Base64
 import android.util.Log
+import android.view.LayoutInflater
 import android.view.View
 import android.view.animation.AnimationUtils
 import androidx.annotation.RequiresApi
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import by.korsakovegor.photomap.R
@@ -20,6 +29,7 @@ import by.korsakovegor.photomap.mainactivity.photos.viewmodels.PhotosViewModel
 import by.korsakovegor.photomap.models.CommentDtoIn
 import by.korsakovegor.photomap.models.CommentDtoOut
 import by.korsakovegor.photomap.models.ImageDtoOut
+import by.korsakovegor.photomap.utils.Utils
 import com.squareup.picasso.Picasso
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -36,7 +46,8 @@ import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.util.Date
 
-class PhotoDetailActivity : AppCompatActivity(), CommentsRecyclerAdapter.OnCommentLongClickListener {
+class PhotoDetailActivity : AppCompatActivity(),
+    CommentsRecyclerAdapter.OnCommentLongClickListener {
     private lateinit var binding: DetailPhotoLayoutBinding
     private var image: ImageDtoOut? = null
     private lateinit var viewModel: PhotosViewModel
@@ -80,7 +91,15 @@ class PhotoDetailActivity : AppCompatActivity(), CommentsRecyclerAdapter.OnComme
             val anim = AnimationUtils.loadAnimation(this, R.anim.button_state)
             it.startAnimation(anim)
 
-            viewModel.sendComment(CommentDtoIn(binding.commentEditText.text.toString()), image?.id)
+            if (binding.commentEditText.text.isEmpty())
+                binding.commentEditText.error = "Comment may not be empty"
+            else
+                viewModel.sendComment(
+                    CommentDtoIn(binding.commentEditText.text.toString()),
+                    image?.id
+                )
+
+            binding.commentEditText.text.clear()
         }
 
         val date = Date()
@@ -132,7 +151,7 @@ class PhotoDetailActivity : AppCompatActivity(), CommentsRecyclerAdapter.OnComme
         })
     }
 
-    fun drawableToBase64(context: Context?, drawableId: Int): String {
+    private fun drawableToBase64(context: Context?, drawableId: Int): String {
         val drawable = context?.getDrawable(drawableId)
         val bitmap = (drawable as BitmapDrawable).bitmap
         val outputStream = ByteArrayOutputStream()
@@ -141,7 +160,14 @@ class PhotoDetailActivity : AppCompatActivity(), CommentsRecyclerAdapter.OnComme
         return Base64.encodeToString(imageBytes, Base64.DEFAULT)
     }
 
+    @RequiresApi(Build.VERSION_CODES.S)
     override fun onCommentLongClick(v: View, commentDtoOut: CommentDtoOut) {
-        Log.d("D1le", "Long click: ${commentDtoOut.text} imageid: ${image?.id}")
+        val vib = getSystemService(VIBRATOR_MANAGER_SERVICE) as VibratorManager
+        Utils.doVibrate(vib)
+
+        Utils.showDeleteAlertDialog(this, "Are you sure you want to delete comment?")
+        { _, _ ->
+            Log.d("D1le", "Comment deleted")
+        }
     }
 }

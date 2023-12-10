@@ -27,8 +27,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 
-class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener,
-    ImageRecyclerAdapter.OnItemClickListener {
+class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
     private lateinit var binding: ActivityMainBinding
     private lateinit var toggle: ActionBarDrawerToggle
     private lateinit var viewModel: MainViewModel
@@ -53,7 +52,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
         viewModel = ViewModelProvider(this)[MainViewModel::class.java]
 
-        viewModel.currentFragment.observe(this){
+        viewModel.currentFragment.observe(this) {
             openFragment(it)
         }
 
@@ -85,23 +84,5 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         fragmentTransaction.replace(R.id.fragment_container, fragment)
         fragmentTransaction.commit()
     }
-
-
-    override fun onImageClick(v: View, image: ImageDtoOut) {
-        val anim = AnimationUtils.loadAnimation(this, R.anim.button_state)
-        v.startAnimation(anim)
-        CoroutineScope(Dispatchers.Main).launch {
-            delay(170)
-            val intent = Intent(this@MainActivity, PhotoDetailActivity::class.java)
-            intent.putExtra("image", image)
-            val options = ActivityOptions.makeSceneTransitionAnimation(
-                this@MainActivity,
-                v.findViewById(R.id.photoImage),
-                "imageTrans"
-            )
-            startActivity(intent, options.toBundle())
-        }
-    }
-
 
 }
