@@ -6,11 +6,23 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/mainBackground"
+        android:elevation="4dp"
+        android:theme="@style/ThemeOverlay.AppCompat"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <ImageView
         android:id="@+id/photo"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="0.5"
+        android:transitionName="imageTrans"
         android:scaleType="centerCrop"
         android:src="@drawable/image2" />
 

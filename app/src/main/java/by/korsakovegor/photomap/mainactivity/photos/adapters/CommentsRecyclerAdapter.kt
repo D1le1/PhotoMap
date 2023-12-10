@@ -33,12 +33,19 @@ class CommentsRecyclerAdapter() :
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-
+        val currentComments = comments[position]
+        holder.commentText.text = currentComments.text
+        holder.commentDate.text = currentComments.time
     }
 
     fun updateData(newComments: ArrayList<CommentDtoOut>){
         comments.clear()
-        comments.addAll(newComments)
+        comments.addAll(newComments.reversed())
         notifyDataSetChanged()
+    }
+
+    fun addItem(item: CommentDtoOut){
+        comments.add(0, item)
+        notifyItemInserted(0)
     }
 }

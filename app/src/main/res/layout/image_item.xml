@@ -20,6 +20,7 @@
             android:id="@+id/photoImage"
             android:layout_width="96dp"
             android:layout_height="96dp"
+            android:transitionName="imageTrans"
             android:scaleType="centerCrop"
             android:src="@drawable/image2" />
 

@@ -1,4 +1,4 @@
-package by.korsakovegor.photomap.mainactivity.photos.fragments
+package by.korsakovegor.photomap.mainactivity
 
 import android.content.Context
 import android.graphics.Bitmap
@@ -7,19 +7,18 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Base64
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import android.view.animation.AnimationUtils
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
-import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import by.korsakovegor.photomap.R
 import by.korsakovegor.photomap.databinding.DetailPhotoLayoutBinding
 import by.korsakovegor.photomap.mainactivity.photos.adapters.CommentsRecyclerAdapter
+import by.korsakovegor.photomap.mainactivity.photos.fragments.PhotoDetailFragment
 import by.korsakovegor.photomap.mainactivity.photos.viewmodels.PhotosViewModel
+import by.korsakovegor.photomap.models.CommentDtoIn
+import by.korsakovegor.photomap.models.CommentDtoOut
 import by.korsakovegor.photomap.models.ImageDtoOut
 import com.squareup.picasso.Picasso
 import kotlinx.coroutines.CoroutineScope
@@ -37,59 +36,63 @@ import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.util.Date
 
-class PhotoDetailFragment : Fragment() {
-    companion object {
-        fun getInstance(args: Bundle?): PhotoDetailFragment {
-            val photoDetailFragment = PhotoDetailFragment()
-            photoDetailFragment.arguments = args
-            return photoDetailFragment
-        }
-    }
-
+class PhotoDetailActivity : AppCompatActivity() {
     private lateinit var binding: DetailPhotoLayoutBinding
     private var image: ImageDtoOut? = null
     private lateinit var viewModel: PhotosViewModel
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        binding = DetailPhotoLayoutBinding.inflate(inflater, container, false)
-        viewModel = ViewModelProvider(this)[PhotosViewModel::class.java]
-        return binding.root
-    }
-
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        binding = DetailPhotoLayoutBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
+        viewModel = ViewModelProvider(this)[PhotosViewModel::class.java]
+
+        setSupportActionBar(binding.toolbar)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.setDisplayShowTitleEnabled(false)
+
+        binding.toolbar.setNavigationOnClickListener {
+            onBackPressed()
+        }
+
         loadImageData()
         viewModel.getComments(image?.id)
 
-
-
         val recycler = binding.recyclerView
-        val layoutManager = LinearLayoutManager(context)
+        val layoutManager = LinearLayoutManager(this)
         recycler.layoutManager = layoutManager
 
         val adapter = CommentsRecyclerAdapter()
         recycler.adapter = adapter
 
-        viewModel.comments.observe(viewLifecycleOwner){
+        viewModel.comments.observe(this) {
             adapter.updateData(it)
+        }
+
+        viewModel.comment.observe(this) {
+            adapter.addItem(it)
+        }
+
+        binding.sendButton.setOnClickListener {
+            val anim = AnimationUtils.loadAnimation(this, R.anim.button_state)
+            it.startAnimation(anim)
+
+            viewModel.sendComment(CommentDtoIn(binding.commentEditText.text.toString()), image?.id)
         }
 
         val date = Date()
         val time = date.time / 1000
         CoroutineScope(Dispatchers.IO).launch {
-            val base = drawableToBase64(context, R.drawable.image2)
+            val base = drawableToBase64(this@PhotoDetailActivity, R.drawable.image2)
 //            uploadImageToServer(base, time, 20.1, 20.1)
         }
     }
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     fun loadImageData() {
-        image = arguments?.getSerializable("image", ImageDtoOut::class.java)
+        image = intent.getSerializableExtra("image", ImageDtoOut::class.java)
         Picasso.get().load(image?.url).into(binding.photo)
         binding.time.text = image?.time
     }

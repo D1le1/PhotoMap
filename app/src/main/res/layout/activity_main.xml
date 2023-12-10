@@ -20,9 +20,7 @@
             android:theme="@style/ThemeOverlay.AppCompat"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:navigationIcon="?attr/homeAsUpIndicator"
-            app:popupTheme="@style/ThemeOverlay.AppCompat" />
+            app:layout_constraintTop_toTopOf="parent" />
 
         <FrameLayout
             android:id="@+id/fragment_container"

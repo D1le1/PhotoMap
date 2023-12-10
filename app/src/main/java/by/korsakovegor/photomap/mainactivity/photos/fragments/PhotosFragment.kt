@@ -1,6 +1,7 @@
 package by.korsakovegor.photomap.mainactivity.photos.fragments
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -21,6 +22,11 @@ class PhotosFragment() : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         viewModel = ViewModelProvider(this)[PhotosViewModel::class.java]
+
+        if (Utils.isInternetAvailable(context))
+            viewModel.getImages()
+        else
+            view?.let { Snackbar.make(it, "Turn On Internet Please", Snackbar.LENGTH_SHORT).show() }
     }
 
     override fun onCreateView(
@@ -35,11 +41,6 @@ class PhotosFragment() : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        if (Utils.isInternetAvailable(context))
-            viewModel.getImages()
-        else
-            Snackbar.make(view, "Turn On Internet Please", Snackbar.LENGTH_SHORT).show()
-
         val recycler = binding.recyclerView
         val layoutManager = GridLayoutManager(context, 3)
         recycler.layoutManager = layoutManager
@@ -50,5 +51,10 @@ class PhotosFragment() : Fragment() {
         viewModel.images.observe(viewLifecycleOwner) {
             adapter.updateData(it)
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        Log.d("D1le", "Dest")
     }
 }

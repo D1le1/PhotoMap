@@ -1,6 +1,7 @@
 package by.korsakovegor.photomap.utils
 
 import android.util.Log
+import by.korsakovegor.photomap.models.CommentDtoIn
 import by.korsakovegor.photomap.models.CommentDtoOut
 import by.korsakovegor.photomap.models.ImageDtoOut
 import by.korsakovegor.photomap.models.SignUserDtoIn
@@ -57,10 +58,10 @@ class JsonParser {
         fun jsonToCommentList(jsonResponse: String): ArrayList<CommentDtoOut>? {
             val jsonObject = JSONObject(jsonResponse)
             val status = jsonObject.getInt("status")
-            if(status == 200){
+            if (status == 200) {
                 val commentsList = ArrayList<CommentDtoOut>()
                 val jsonArray = jsonObject.getJSONArray("data")
-                for(i in 0 until jsonArray.length()){
+                for (i in 0 until jsonArray.length()) {
                     val arrayJsonObject = jsonArray.getJSONObject(i)
                     val id = arrayJsonObject.getInt("id")
                     val date = arrayJsonObject.getLong("date")
@@ -70,6 +71,28 @@ class JsonParser {
                 }
                 return commentsList
             }
+            return null
+        }
+
+        fun commentToJson(comment: CommentDtoIn): String {
+            val jsonObject = JSONObject()
+            jsonObject.put("text", comment.text)
+
+            return jsonObject.toString()
+        }
+
+        fun jsonToComment(jsonResponse: String): CommentDtoOut? {
+            val jsonObject = JSONObject(jsonResponse)
+            val status = jsonObject.getInt("status")
+            if(status == 200){
+                val jsonDataObject = jsonObject.getJSONObject("data")
+                val id = jsonDataObject.getInt("id")
+                val date = jsonDataObject.getLong("date")
+                val text = jsonDataObject.getString("text")
+
+                return CommentDtoOut(id, date, text)
+            }
+
             return null
         }
     }
