@@ -20,7 +20,9 @@ import by.korsakovegor.photomap.databinding.FragmentPhotosLayoutBinding
 import by.korsakovegor.photomap.mainactivity.photos.activities.PhotoDetailActivity
 import by.korsakovegor.photomap.mainactivity.photos.adapters.ImageRecyclerAdapter
 import by.korsakovegor.photomap.mainactivity.photos.viewmodels.PhotosViewModel
+import by.korsakovegor.photomap.mainactivity.photos.viewmodels.PhotosViewModelFactory
 import by.korsakovegor.photomap.models.ImageDtoOut
+import by.korsakovegor.photomap.models.SignUserOutDto
 import by.korsakovegor.photomap.utils.Utils
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.CoroutineScope
@@ -28,16 +30,19 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-class PhotosFragment() : Fragment(), ImageRecyclerAdapter.OnImageClickListener,
+class PhotosFragment(private val user: SignUserOutDto?) : Fragment(),
+    ImageRecyclerAdapter.OnImageClickListener,
     ImageRecyclerAdapter.OnImageLongClickListener {
+
     private lateinit var binding: FragmentPhotosLayoutBinding
     private lateinit var viewModel: PhotosViewModel
     private var longClicked = false
+    private var isOpen = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        viewModel = ViewModelProvider(this)[PhotosViewModel::class.java]
-
+        val viewModeFactory = PhotosViewModelFactory(user!!)
+        viewModel = ViewModelProvider(this, viewModeFactory)[PhotosViewModel::class.java]
         if (Utils.isInternetAvailable(context))
             viewModel.getImages()
         else
@@ -67,7 +72,7 @@ class PhotosFragment() : Fragment(), ImageRecyclerAdapter.OnImageClickListener,
         viewModel.images.observe(viewLifecycleOwner) {
             adapter.updateData(it)
         }
-        viewModel.deletedItem.observe(viewLifecycleOwner){
+        viewModel.deletedItem.observe(viewLifecycleOwner) {
             adapter.deleteItem(it)
         }
     }
@@ -78,20 +83,22 @@ class PhotosFragment() : Fragment(), ImageRecyclerAdapter.OnImageClickListener,
     }
 
     override fun onImageClick(v: View, image: ImageDtoOut) {
-        if (!longClicked) {
+        if (!longClicked && !isOpen) {
+            isOpen = true
             val anim = AnimationUtils.loadAnimation(activity, R.anim.button_state)
             v.startAnimation(anim)
             CoroutineScope(Dispatchers.Main).launch {
                 delay(170)
                 val intent = Intent(activity, PhotoDetailActivity::class.java)
                 intent.putExtra("image", image)
+                intent.putExtra("user", user)
                 val options = ActivityOptions.makeSceneTransitionAnimation(
                     activity,
                     v.findViewById(R.id.photoImage),
                     "imageTrans"
                 )
                 startActivity(intent, options.toBundle())
-                longClicked = false
+                isOpen = false
             }
         }
         longClicked = false
@@ -113,4 +120,5 @@ class PhotosFragment() : Fragment(), ImageRecyclerAdapter.OnImageClickListener,
         }
 
     }
+
 }

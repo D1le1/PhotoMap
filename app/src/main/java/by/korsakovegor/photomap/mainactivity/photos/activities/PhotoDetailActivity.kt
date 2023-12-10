@@ -17,9 +17,11 @@ import by.korsakovegor.photomap.R
 import by.korsakovegor.photomap.databinding.DetailPhotoLayoutBinding
 import by.korsakovegor.photomap.mainactivity.photos.adapters.CommentsRecyclerAdapter
 import by.korsakovegor.photomap.mainactivity.photos.viewmodels.PhotosViewModel
+import by.korsakovegor.photomap.mainactivity.photos.viewmodels.PhotosViewModelFactory
 import by.korsakovegor.photomap.models.CommentDtoIn
 import by.korsakovegor.photomap.models.CommentDtoOut
 import by.korsakovegor.photomap.models.ImageDtoOut
+import by.korsakovegor.photomap.models.SignUserOutDto
 import by.korsakovegor.photomap.utils.Utils
 import com.squareup.picasso.Picasso
 import kotlinx.coroutines.CoroutineScope
@@ -49,7 +51,9 @@ class PhotoDetailActivity : AppCompatActivity(),
         binding = DetailPhotoLayoutBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        viewModel = ViewModelProvider(this)[PhotosViewModel::class.java]
+        val user = intent.getSerializableExtra("user", SignUserOutDto::class.java)
+        val viewModelFactory = PhotosViewModelFactory(user!!)
+        viewModel = ViewModelProvider(this, viewModelFactory)[PhotosViewModel::class.java]
 
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
@@ -60,6 +64,7 @@ class PhotoDetailActivity : AppCompatActivity(),
         }
 
         loadImageData()
+        Log.d("D1le", "imageid = ${image?.id}")
         viewModel.getComments(image?.id)
 
         val recycler = binding.recyclerView

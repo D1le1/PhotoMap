@@ -1,9 +1,9 @@
 package by.korsakovegor.photomap.models
 
-data class SignUserOutDto(
-    private val userId: Int,
-    private val login: String,
-    private val token: String
-) {
+import java.io.Serializable
 
-}
+data class SignUserOutDto(
+    val userId: Int,
+    val login: String,
+    val token: String
+) : Serializable

@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import by.korsakovegor.photomap.models.CommentDtoIn
 import by.korsakovegor.photomap.models.CommentDtoOut
 import by.korsakovegor.photomap.models.ImageDtoOut
+import by.korsakovegor.photomap.models.SignUserOutDto
 import by.korsakovegor.photomap.utils.JsonParser
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -15,7 +16,8 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 
-class PhotosViewModel : ViewModel() {
+class PhotosViewModel(private val user: SignUserOutDto) : ViewModel() {
+
     private val _images = MutableLiveData<ArrayList<ImageDtoOut>>()
     val images: LiveData<ArrayList<ImageDtoOut>> get() = _images
 
@@ -29,22 +31,21 @@ class PhotosViewModel : ViewModel() {
     val deletedItem: LiveData<Int> get() = _deletedItem
 
     fun getImages() {
+        val url = "https://junior.balinasoft.com/api/image?page=0"
         CoroutineScope(Dispatchers.IO).launch {
-            val response = sendGetRequest("https://junior.balinasoft.com/api/image?page=0")
+            val response = sendGetRequest(url, user.token)
             val resImages = JsonParser.jsonToImageList(response)
-            if (resImages != null)
-                _images.postValue(resImages)
+            if (resImages != null) _images.postValue(resImages)
         }
     }
 
     fun getComments(imageId: Int?) {
+        val url = "https://junior.balinasoft.com/api/image/$imageId/comment?page=0"
         CoroutineScope(Dispatchers.IO).launch {
-            val response =
-                sendGetRequest("https://junior.balinasoft.com/api/image/$imageId/comment?page=0")
+            val response = sendGetRequest(url, user.token)
             Log.d("D1le", response)
             val resComments = JsonParser.jsonToCommentList(response)
-            if (resComments != null)
-                _comments.postValue(resComments)
+            if (resComments != null) _comments.postValue(resComments)
         }
     }
 
@@ -52,68 +53,54 @@ class PhotosViewModel : ViewModel() {
         val url = "https://junior.balinasoft.com/api/image/$imageId/comment"
         val accept = "*/*"
         val contentType = "application/json"
-        val token = "6U5f0Hvae8OgyKpfWdnnW7l3Euvdw0TlFrlztYubaVZ59J4tKIfjd23MaAbWseXP"
+        val jsonBody = JsonParser.commentToJson(comment)
         CoroutineScope(Dispatchers.IO).launch {
             val response =
-                sendPostRequest(url, JsonParser.commentToJson(comment), accept, contentType, token)
+                sendPostRequest(url, jsonBody, accept, contentType, user.token)
             Log.d("D1le", response)
             val resComment = JsonParser.jsonToComment(response)
-            if (resComment != null)
-                _comment.postValue(resComment)
+            if (resComment != null) _comment.postValue(resComment)
         }
     }
 
     fun deleteComment(comment: CommentDtoOut, imageId: Int?, pos: Int) {
         val url = "https://junior.balinasoft.com/api/image/$imageId/comment/${comment.id}"
-        val token = "6U5f0Hvae8OgyKpfWdnnW7l3Euvdw0TlFrlztYubaVZ59J4tKIfjd23MaAbWseXP"
         CoroutineScope(Dispatchers.IO).launch {
-            val response = sendDeleteRequest(url, token)
+            val response = sendDeleteRequest(url, user.token)
             Log.d("D1le", response)
-            if (JsonParser.jsonCheckDelete(response))
-                _deletedItem.postValue(pos)
+            if (JsonParser.jsonCheckDelete(response)) _deletedItem.postValue(pos)
         }
     }
 
     fun deleteImage(image: ImageDtoOut, pos: Int) {
         val url = "https://junior.balinasoft.com/api/image/${image.id}"
-        val token = "6U5f0Hvae8OgyKpfWdnnW7l3Euvdw0TlFrlztYubaVZ59J4tKIfjd23MaAbWseXP"
         CoroutineScope(Dispatchers.IO).launch {
-            val response = sendDeleteRequest(url, token)
-            if (JsonParser.jsonCheckDelete(response))
-                _deletedItem.postValue(pos)
+            val response = sendDeleteRequest(url, user.token)
+            Log.d("D1le", response)
+            if (JsonParser.jsonCheckDelete(response)) _deletedItem.postValue(pos)
         }
     }
 
-    private fun sendGetRequest(url: String): String {
+    private fun sendGetRequest(url: String, token: String): String {
         val client = OkHttpClient()
 
-        val request =
-            Request.Builder().url(url).addHeader("accept", "*/*")
-                .addHeader(
-                    "Access-Token",
-                    "6U5f0Hvae8OgyKpfWdnnW7l3Euvdw0TlFrlztYubaVZ59J4tKIfjd23MaAbWseXP"
-                ).build()
+        val request = Request.Builder().url(url).addHeader("accept", "*/*").addHeader(
+                "Access-Token", token
+            ).build()
 
         val response = client.newCall(request).execute()
         return response.body?.string() ?: ""
     }
 
     private fun sendPostRequest(
-        url: String,
-        jsonBody: String,
-        accept: String,
-        contentType: String,
-        accessToken: String
+        url: String, jsonBody: String, accept: String, contentType: String, accessToken: String
     ): String {
         val client = OkHttpClient()
 
         val requestBody = jsonBody.toRequestBody()
 
-        val request =
-            Request.Builder().url(url).post(requestBody).addHeader("accept", accept)
-                .addHeader("Content-Type", contentType)
-                .addHeader("Access-Token", accessToken)
-                .build()
+        val request = Request.Builder().url(url).post(requestBody).addHeader("accept", accept)
+            .addHeader("Content-Type", contentType).addHeader("Access-Token", accessToken).build()
 
         val response = client.newCall(request).execute()
         return response.body?.string() ?: ""
@@ -122,10 +109,8 @@ class PhotosViewModel : ViewModel() {
     private fun sendDeleteRequest(url: String, accessToken: String): String {
         val client = OkHttpClient()
 
-        val request =
-            Request.Builder().url(url).delete().addHeader("accept", "*/*")
-                .addHeader("Access-Token", accessToken)
-                .build()
+        val request = Request.Builder().url(url).delete().addHeader("accept", "*/*")
+            .addHeader("Access-Token", accessToken).build()
 
         val response = client.newCall(request).execute()
         return response.body?.string() ?: ""

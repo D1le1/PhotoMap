@@ -16,8 +16,8 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 
 class AuthViewModel : ViewModel() {
-    private val _user = MutableLiveData<SignUserOutDto>()
-    val user: LiveData<SignUserOutDto> get() = _user
+    private val _user = MutableLiveData<SignUserOutDto?>()
+    val user: MutableLiveData<SignUserOutDto?> get() = _user
 
     private val _error = MutableLiveData<String>()
     val error: LiveData<String> get() = _error
@@ -51,11 +51,14 @@ class AuthViewModel : ViewModel() {
         }
     }
 
+    fun clearUser(){
+        _user.postValue(null)
+    }
+
     private fun sendPostRequest(url: String, jsonBody: String): String {
         val client = OkHttpClient()
 
-        val mediaType = "application/json".toMediaType()
-        val requestBody = jsonBody.toRequestBody(mediaType)
+        val requestBody = jsonBody.toRequestBody()
 
         val request =
             Request.Builder().url(url).post(requestBody).addHeader("accept", "application/json")

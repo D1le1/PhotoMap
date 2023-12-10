@@ -6,11 +6,12 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.viewpager2.widget.ViewPager2
 import by.korsakovegor.photomap.authactivity.viewmodels.AuthViewModel
 import by.korsakovegor.photomap.databinding.FragmentRegisterLayoutBinding
 import by.korsakovegor.photomap.models.SignUserDtoIn
 
-class RegisterFragment : Fragment() {
+class RegisterFragment() : Fragment() {
     private lateinit var binding: FragmentRegisterLayoutBinding
     private lateinit var viewModel: AuthViewModel
 
@@ -70,7 +71,10 @@ class RegisterFragment : Fragment() {
             binding.error?.visibility = View.GONE
             binding.success?.visibility = View.VISIBLE
             binding.success?.text = "Registration successful"
+
+            binding.loginEditText.text.clear()
+            binding.passwordEditText.text.clear()
+            binding.repeatPasswordEditText.text.clear()
         }
     }
-
 }
