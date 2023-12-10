@@ -16,6 +16,7 @@ import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.FragmentTransaction
 import androidx.lifecycle.ViewModelProvider
 import by.korsakovegor.photomap.databinding.ActivityMainBinding
@@ -84,7 +85,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.photos -> viewModel.setFragment(PhotosFragment(user))
-            R.id.map -> viewModel.setFragment(MapFragment())
+            R.id.map -> viewModel.setFragment(MapFragment(user))
         }
         binding.drawerLayout.closeDrawer(GravityCompat.START)
         return true

@@ -29,6 +29,9 @@
         <activity android:name=".mainactivity.MainActivity" />
 
         <activity android:name=".mainactivity.photos.activities.PhotoDetailActivity" />
+
+        <meta-data android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyApzQSx0DgbCNlfKZjsEUYnzWj-W2FB6AA"/>
     </application>
 
 </manifest>

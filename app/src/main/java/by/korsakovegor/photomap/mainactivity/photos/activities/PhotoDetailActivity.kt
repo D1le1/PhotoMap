@@ -85,8 +85,10 @@ class PhotoDetailActivity : AppCompatActivity(),
         }
 
         viewModel.comment.observe(this) {
+            binding.swipeRefreshLayout.isRefreshing = false
             if (it != null) {
                 adapter.addItem(it)
+                binding.commentEditText.text.clear()
             }
         }
 
@@ -117,9 +119,8 @@ class PhotoDetailActivity : AppCompatActivity(),
                         CommentDtoIn(binding.commentEditText.text.toString()),
                         image?.id
                     )
-                }
-
-            binding.commentEditText.text.clear()
+                }else
+                    Utils.showConnectionAlertDialog(this)
         }
 
         binding.swipeRefreshLayout.setOnRefreshListener {
