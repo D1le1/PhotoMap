@@ -3,6 +3,7 @@ package by.korsakovegor.photomap.utils
 import android.util.Log
 import by.korsakovegor.photomap.models.CommentDtoIn
 import by.korsakovegor.photomap.models.CommentDtoOut
+import by.korsakovegor.photomap.models.ImageDtoIn
 import by.korsakovegor.photomap.models.ImageDtoOut
 import by.korsakovegor.photomap.models.SignUserDtoIn
 import by.korsakovegor.photomap.models.SignUserOutDto
@@ -51,6 +52,32 @@ class JsonParser {
                     imagesList.add(ImageDtoOut(id, url, date, lat, lng))
                 }
                 return imagesList
+            }
+            return null
+        }
+
+        fun imageToJson(image: ImageDtoIn): String {
+            val jsonObject = JSONObject()
+                .put("base64Image", image.base64)
+                .put("date", image.date)
+                .put("lat", image.lat)
+                .put("lng", image.lng)
+
+            return jsonObject.toString()
+        }
+
+        fun jsonToImage(jsonResponse: String): ImageDtoOut? {
+            val jsonObject = JSONObject(jsonResponse)
+            val status = jsonObject.getInt("status")
+            if (status == 200) {
+                val jsonDataObject = jsonObject.getJSONObject("data")
+                val id = jsonDataObject.getInt("id")
+                val url = jsonDataObject.getString("url")
+                val date = jsonDataObject.getLong("date")
+                val lat = jsonDataObject.getDouble("lat")
+                val lng = jsonDataObject.getDouble("lng")
+
+                return ImageDtoOut(id, url, date, lat, lng)
             }
             return null
         }

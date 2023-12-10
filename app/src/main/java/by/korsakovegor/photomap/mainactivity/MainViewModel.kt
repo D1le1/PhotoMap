@@ -28,39 +28,4 @@ class MainViewModel: ViewModel() {
     fun setFragment(fragment: Fragment){
         _currentFragment.postValue(fragment)
     }
-
-    fun uploadImageToServer(base64Image: String, date: Long, lat: Double, lng: Double, token: String) {
-        val jsonBody = JSONObject()
-            .put("base64Image", base64Image)
-            .put("date", date)
-            .put("lat", lat)
-            .put("lng", lng)
-            .toString()
-
-        val mediaType = "application/json;charset=UTF-8".toMediaType()
-        val requestBody = jsonBody.toRequestBody(mediaType)
-
-        val request = Request.Builder()
-            .url("https://junior.balinasoft.com/api/image")
-            .post(requestBody)
-            .addHeader("accept", "application/json;charset=UTF-8")
-            .addHeader(
-                "Access-Token",
-                token
-            )
-            .build()
-
-        val client = OkHttpClient()
-        client.newCall(request).enqueue(object : Callback {
-            override fun onFailure(call: Call, e: IOException) {
-                Log.d("D1le", e.printStackTrace().toString())
-            }
-
-            override fun onResponse(call: Call, response: Response) {
-                Log.d("D1le", response.body?.string().toString())
-            }
-        })
-    }
-
-
 }

@@ -61,6 +61,12 @@ class ImageRecyclerAdapter :
         notifyDataSetChanged()
     }
 
+    fun addItem(image: ImageDtoOut)
+    {
+        images.add(0, image)
+        notifyItemInserted(0)
+    }
+
     fun deleteItem(pos: Int){
         images.removeAt(pos)
         notifyItemRemoved(pos)

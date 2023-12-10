@@ -74,7 +74,7 @@ class AuthViewModel : ViewModel() {
 
             val response = client.newCall(request).execute()
             response.body?.string() ?: ""
-        } catch (ex: Exception) {
+        } catch (_: Exception) {
             ""
         }
     }

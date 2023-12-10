@@ -6,6 +6,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import by.korsakovegor.photomap.models.CommentDtoIn
 import by.korsakovegor.photomap.models.CommentDtoOut
+import by.korsakovegor.photomap.models.ImageDtoIn
 import by.korsakovegor.photomap.models.ImageDtoOut
 import by.korsakovegor.photomap.models.SignUserOutDto
 import by.korsakovegor.photomap.utils.JsonParser
@@ -20,6 +21,9 @@ class PhotosViewModel : ViewModel() {
 
     private val _images = MutableLiveData<ArrayList<ImageDtoOut>?>()
     val images: LiveData<ArrayList<ImageDtoOut>?> get() = _images
+
+    private val _image = MutableLiveData<ImageDtoOut?>()
+    val image: LiveData<ImageDtoOut?> get() = _image
 
     private val _comments = MutableLiveData<ArrayList<CommentDtoOut>?>()
     val comments: LiveData<ArrayList<CommentDtoOut>?> get() = _comments
@@ -49,6 +53,25 @@ class PhotosViewModel : ViewModel() {
             } else
                 _error.postValue("")
         }
+    }
+
+    fun sendImage(image: ImageDtoIn, token: String) {
+        CoroutineScope(Dispatchers.IO).launch {
+            val jsonBody = JsonParser.imageToJson(image)
+
+            val url = "https://junior.balinasoft.com/api/image"
+            val accept = "application/json;charset=UTF-8"
+            val contentType = "application/json;charset=UTF-8"
+
+            val response = sendPostRequest(url, jsonBody, accept, contentType, token)
+            if (response.isNotEmpty()) {
+                val resImage = JsonParser.jsonToImage(response)
+                if (resImage != null) _image.postValue(resImage)
+                else _error.postValue("Some problems with image tra again later")
+            }else
+                _error.postValue("")
+        }
+
     }
 
     fun getComments(imageId: Int?) {
