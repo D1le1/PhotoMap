@@ -193,6 +193,7 @@ class PhotosFragment(private val user: SignUserOutDto? = null) : Fragment(),
 
                 if (!recycler.canScrollVertically(1) && !isOnBottom) {
                     if (Utils.isInternetAvailable(requireContext())) {
+                        binding.swipeRefreshLayout.isRefreshing = true
                         isOnBottom = true
                         viewModel.getImages(page)
                     } else
