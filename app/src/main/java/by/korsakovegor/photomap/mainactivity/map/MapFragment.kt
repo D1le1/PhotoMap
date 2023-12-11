@@ -45,7 +45,7 @@ class MapFragment(private val user: SignUserOutDto?) : Fragment(), OnMapReadyCal
         mapView?.onResume()
         viewModel = ViewModelProvider(this)[PhotosViewModel::class.java]
         viewModel.setUserToken(user?.token ?: "")
-        viewModel.getImages()
+        viewModel.getImages(0)
 
         viewModel.images.observe(viewLifecycleOwner){
             if(googleMap != null){

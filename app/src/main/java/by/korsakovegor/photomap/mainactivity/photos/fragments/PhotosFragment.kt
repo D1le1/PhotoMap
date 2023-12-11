@@ -27,6 +27,8 @@ import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.RecyclerView.OnScrollListener
 import by.korsakovegor.photomap.R
 import by.korsakovegor.photomap.databinding.FragmentPhotosLayoutBinding
 import by.korsakovegor.photomap.mainactivity.photos.activities.PhotoDetailActivity
@@ -66,14 +68,17 @@ class PhotosFragment(private val user: SignUserOutDto? = null) : Fragment(),
     private var isPictureOpening = false
     private lateinit var resultLauncher: ActivityResultLauncher<Intent>
     private lateinit var currentFile: File
+    private var page: Int = 0
+    private var isOnBottom = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        page = 0
         viewModel = ViewModelProvider(this)[PhotosViewModel::class.java]
         viewModel.setUserToken(user?.token ?: "")
         if (Utils.isInternetAvailable(requireContext())) {
             Log.d("D1le", user?.token.toString())
-            viewModel.getImages()
+            viewModel.getImages(page)
         } else
             Utils.showConnectionAlertDialog(requireContext())
 
@@ -120,10 +125,18 @@ class PhotosFragment(private val user: SignUserOutDto? = null) : Fragment(),
         viewModel.images.observe(viewLifecycleOwner) {
             binding.swipeRefreshLayout.isRefreshing = false
             if (it != null) {
-                adapter.updateData(it)
-                if (it.size > 0)
-                    binding.noImages.visibility = View.GONE
+                if(it.size >0) {
+                    if (page == 0) {
+                        adapter.updateData(it)
+                    } else {
+                        adapter.addData(it)
+                    }
+                    page++
+                    isOnBottom = false
+                }
             }
+            if (adapter.itemCount > 0)
+                binding.noImages.visibility = View.GONE
         }
         viewModel.image.observe(viewLifecycleOwner) {
             if (it != null) {
@@ -134,7 +147,7 @@ class PhotosFragment(private val user: SignUserOutDto? = null) : Fragment(),
         }
         viewModel.deletedItem.observe(viewLifecycleOwner) {
             adapter.deleteItem(it)
-            if(adapter.itemCount == 0)
+            if (adapter.itemCount == 0)
                 binding.noImages.visibility = View.VISIBLE
             binding.swipeRefreshLayout.isRefreshing = false
         }
@@ -150,7 +163,8 @@ class PhotosFragment(private val user: SignUserOutDto? = null) : Fragment(),
 
         binding.swipeRefreshLayout.setOnRefreshListener {
             if (Utils.isInternetAvailable(requireContext())) {
-                viewModel.getImages()
+                page = 0
+                viewModel.getImages(page)
             } else {
                 Utils.showConnectionAlertDialog(requireContext())
                 binding.swipeRefreshLayout.isRefreshing = false
@@ -161,6 +175,17 @@ class PhotosFragment(private val user: SignUserOutDto? = null) : Fragment(),
             binding.swipeRefreshLayout.isRefreshing = true
             dispatchTakePictureIntent()
         }
+
+        recycler.addOnScrollListener(object : OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+
+                if (!recycler.canScrollVertically(1) && !isOnBottom) {
+                    isOnBottom = true
+                    viewModel.getImages(page)
+                }
+            }
+        })
     }
 
     override fun onDestroy() {
@@ -259,7 +284,8 @@ class PhotosFragment(private val user: SignUserOutDto? = null) : Fragment(),
                                 resource.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
                                 val imageBytes = outputStream.toByteArray()
                                 val base64 = Base64.encodeToString(imageBytes, Base64.DEFAULT)
-                                val image = ImageDtoIn(base64, Date(), latLng.latitude, latLng.longitude)
+                                val image =
+                                    ImageDtoIn(base64, Date(), latLng.latitude, latLng.longitude)
                                 viewModel.sendImage(
                                     image, user?.token ?: ""
                                 )
@@ -310,9 +336,5 @@ class PhotosFragment(private val user: SignUserOutDto? = null) : Fragment(),
                 callback(latLng)
             }
         }
-    }
-
-    interface OnStartImageLoad {
-        fun onImageLoad()
     }
 }

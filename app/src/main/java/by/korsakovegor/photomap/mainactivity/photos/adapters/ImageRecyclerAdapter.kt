@@ -61,6 +61,13 @@ class ImageRecyclerAdapter :
         notifyDataSetChanged()
     }
 
+    fun addData(newImages: ArrayList<ImageDtoOut>)
+    {
+        val pos = images.size
+        images.addAll(newImages)
+        notifyItemRangeChanged(pos, images.size)
+    }
+
     fun addItem(image: ImageDtoOut) {
         images.add(0, image)
         notifyItemInserted(0)

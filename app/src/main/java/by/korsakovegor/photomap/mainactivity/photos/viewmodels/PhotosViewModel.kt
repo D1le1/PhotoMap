@@ -43,10 +43,11 @@ class PhotosViewModel : ViewModel() {
         userToken.value = token
     }
 
-    fun getImages() {
-        val url = "https://junior.balinasoft.com/api/image?page=0"
+    fun getImages(page: Int) {
+        val url = "https://junior.balinasoft.com/api/image?page=$page"
         CoroutineScope(Dispatchers.IO).launch {
             val response = sendGetRequest(url, userToken.value.toString())
+            Log.d("D1le", "PAGE: $page - $response")
             if (response.isNotEmpty()) {
                 val resImages = JsonParser.jsonToImageList(response)
                 if (resImages != null) _images.postValue(resImages)
