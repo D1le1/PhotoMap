@@ -1,14 +1,20 @@
 package by.korsakovegor.photomap.mainactivity
 
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.drawable.Drawable
 import android.os.Build
 import android.os.Bundle
+import android.os.Environment
+import android.provider.MediaStore
+import android.util.Base64
 import android.view.MenuItem
 import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.ActivityResultLauncher
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.FileProvider
 import androidx.core.view.GravityCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
@@ -17,8 +23,17 @@ import by.korsakovegor.photomap.R
 import by.korsakovegor.photomap.databinding.ActivityMainBinding
 import by.korsakovegor.photomap.mainactivity.map.MapFragment
 import by.korsakovegor.photomap.mainactivity.photos.fragments.PhotosFragment
+import by.korsakovegor.photomap.mainactivity.photos.viewmodels.PhotosViewModel
+import by.korsakovegor.photomap.models.ImageDtoIn
 import by.korsakovegor.photomap.models.SignUserOutDto
+import com.bumptech.glide.Glide
+import com.bumptech.glide.request.RequestOptions
+import com.bumptech.glide.request.target.CustomTarget
+import com.bumptech.glide.request.transition.Transition
 import com.google.android.material.navigation.NavigationView
+import java.io.ByteArrayOutputStream
+import java.io.File
+import java.util.Date
 
 
 class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
@@ -94,4 +109,42 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         fragmentTransaction.replace(R.id.fragment_container, fragment)
         fragmentTransaction.commit()
     }
+
+    private fun dispatchTakePictureIntent() {
+        val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+        val file = File(this.getExternalFilesDir(Environment.DIRECTORY_PICTURES), "MyPhoto.jpg")
+        val photoURI = FileProvider.getUriForFile(this, "by.korsakovegor.photomap.fileprovider", file)
+        takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
+        if (this.packageManager?.let { takePictureIntent.resolveActivity(it) } != null) {
+            resultLauncher.launch(takePictureIntent)
+        }
+    }
+
+    private fun processCapturedPhoto() {
+        val file = File(this.getExternalFilesDir(Environment.DIRECTORY_PICTURES), "MyPhoto.jpg")
+        val photoURI = FileProvider.getUriForFile(this, "by.korsakovegor.photomap.fileprovider", file)
+        Glide.with(this)
+            .asBitmap()
+            .load(photoURI)
+            .apply(RequestOptions().override(720, 1280))
+            .into(object : CustomTarget<Bitmap>() {
+                override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
+                    val outputStream = ByteArrayOutputStream()
+                    resource.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
+                    val imageBytes = outputStream.toByteArray()
+                    val base64 = Base64.encodeToString(imageBytes, Base64.DEFAULT)
+
+                    val image = ImageDtoIn(
+                        base64, Date(), 0.0, 0.0
+                    )
+                    val viewModel = ViewModelProvider(this@MainActivity)[PhotosViewModel::class.java]
+                    viewModel.sendImage(image, user?.token ?: "")
+
+                }
+
+                override fun onLoadCleared(placeholder: Drawable?) {}
+            })
+    }
+
+
 }

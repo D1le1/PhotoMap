@@ -51,24 +51,26 @@ class ImageRecyclerAdapter :
         onItemClickListener = listener
     }
 
-    fun setOnItemLongClickListener(listener: OnImageLongClickListener){
+    fun setOnItemLongClickListener(listener: OnImageLongClickListener) {
         onItemLongClickListener = listener
     }
 
-    fun updateData(newImages: ArrayList<ImageDtoOut>){
+    fun updateData(newImages: ArrayList<ImageDtoOut>) {
         images.clear()
         images.addAll(newImages)
         notifyDataSetChanged()
     }
 
-    fun addItem(image: ImageDtoOut)
-    {
+    fun addItem(image: ImageDtoOut) {
         images.add(0, image)
         notifyItemInserted(0)
     }
 
-    fun deleteItem(pos: Int){
-        images.removeAt(pos)
+    fun deleteItem(pos: Int) {
+        if (pos == images.size)
+            images.removeAt(images.size - 1)
+        else
+            images.removeAt(pos)
         notifyItemRemoved(pos)
     }
 

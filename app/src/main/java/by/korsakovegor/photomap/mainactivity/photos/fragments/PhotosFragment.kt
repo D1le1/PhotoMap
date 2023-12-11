@@ -3,7 +3,6 @@ package by.korsakovegor.photomap.mainactivity.photos.fragments
 import android.Manifest
 import android.app.Activity
 import android.app.ActivityOptions
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
@@ -22,7 +21,6 @@ import android.view.ViewGroup
 import android.view.animation.AnimationUtils
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.FileProvider
@@ -31,7 +29,6 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import by.korsakovegor.photomap.R
 import by.korsakovegor.photomap.databinding.FragmentPhotosLayoutBinding
-import by.korsakovegor.photomap.mainactivity.MainActivity
 import by.korsakovegor.photomap.mainactivity.photos.activities.PhotoDetailActivity
 import by.korsakovegor.photomap.mainactivity.photos.adapters.ImageRecyclerAdapter
 import by.korsakovegor.photomap.mainactivity.photos.viewmodels.PhotosViewModel
@@ -49,14 +46,15 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.tasks.CancellationToken
 import com.google.android.gms.tasks.CancellationTokenSource
 import com.google.android.gms.tasks.OnTokenCanceledListener
-import com.google.android.material.floatingactionbutton.FloatingActionButton
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.text.SimpleDateFormat
 import java.util.Date
+import java.util.Locale
 
 class PhotosFragment(private val user: SignUserOutDto? = null) : Fragment(),
     ImageRecyclerAdapter.OnImageClickListener,
@@ -67,6 +65,7 @@ class PhotosFragment(private val user: SignUserOutDto? = null) : Fragment(),
     private var isLongClicked = false
     private var isPictureOpening = false
     private lateinit var resultLauncher: ActivityResultLauncher<Intent>
+    private lateinit var currentFile: File
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -82,7 +81,7 @@ class PhotosFragment(private val user: SignUserOutDto? = null) : Fragment(),
             registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
                 if (it.resultCode == Activity.RESULT_OK) {
                     processCapturedPhoto()
-                }
+                } else binding.swipeRefreshLayout.isRefreshing = false
             }
 
         registerForActivityResult(
@@ -135,6 +134,8 @@ class PhotosFragment(private val user: SignUserOutDto? = null) : Fragment(),
         }
         viewModel.deletedItem.observe(viewLifecycleOwner) {
             adapter.deleteItem(it)
+            if(adapter.itemCount == 0)
+                binding.noImages.visibility = View.VISIBLE
             binding.swipeRefreshLayout.isRefreshing = false
         }
 
@@ -216,10 +217,15 @@ class PhotosFragment(private val user: SignUserOutDto? = null) : Fragment(),
 
     }
 
+    private fun createImageFile(): File {
+        val fileName = "photo.jpg"
+        val storageDir = requireActivity().getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+        return File.createTempFile(fileName, null, storageDir)
+    }
+
     private fun dispatchTakePictureIntent() {
         val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-        val file =
-            File(activity?.getExternalFilesDir(Environment.DIRECTORY_PICTURES), "MyPhoto.jpg")
+        val file = createImageFile()
         val photoURI =
             FileProvider.getUriForFile(
                 requireContext(),
@@ -227,14 +233,14 @@ class PhotosFragment(private val user: SignUserOutDto? = null) : Fragment(),
                 file
             )
         takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
-        if (activity?.packageManager?.let { takePictureIntent.resolveActivity(it) } != null) {
+        currentFile = file
+        if (requireActivity().packageManager?.let { takePictureIntent.resolveActivity(it) } != null) {
             resultLauncher.launch(takePictureIntent)
         }
     }
 
     private fun processCapturedPhoto() {
-        val file =
-            File(activity?.getExternalFilesDir(Environment.DIRECTORY_PICTURES), "MyPhoto.jpg")
+        val file = currentFile
         if (file.exists()) {
             Glide.with(this)
                 .asBitmap()
@@ -245,17 +251,19 @@ class PhotosFragment(private val user: SignUserOutDto? = null) : Fragment(),
                         resource: Bitmap,
                         transition: Transition<in Bitmap>?
                     ) {
-                        val outputStream = ByteArrayOutputStream()
-                        resource.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
-                        val imageBytes = outputStream.toByteArray()
-                        val base64 = Base64.encodeToString(imageBytes, Base64.DEFAULT)
 
                         getCurrentLocation { latLng ->
-                            if(latLng != null){
-                                val image = ImageDtoIn(
-                                    base64, Date(), latLng.latitude, latLng.longitude
+                            if (latLng != null) {
+
+                                val outputStream = ByteArrayOutputStream()
+                                resource.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
+                                val imageBytes = outputStream.toByteArray()
+                                val base64 = Base64.encodeToString(imageBytes, Base64.DEFAULT)
+                                val image = ImageDtoIn(base64, Date(), latLng.latitude, latLng.longitude)
+                                viewModel.sendImage(
+                                    image, user?.token ?: ""
                                 )
-                                viewModel.sendImage(image, user?.token ?: "")
+                                file.delete()
                             }
                         }
                     }
@@ -264,6 +272,7 @@ class PhotosFragment(private val user: SignUserOutDto? = null) : Fragment(),
                 })
         }
     }
+
 
     private fun getCurrentLocation(callback: (LatLng?) -> Unit) {
         val fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
@@ -277,7 +286,7 @@ class PhotosFragment(private val user: SignUserOutDto? = null) : Fragment(),
             ) != PackageManager.PERMISSION_GRANTED
         ) {
             Utils.showAlertDialog(requireContext(), "Error", "Give necessary permissions")
-            
+
             binding.swipeRefreshLayout.isRefreshing = false
             callback(null)
             return
@@ -303,4 +312,7 @@ class PhotosFragment(private val user: SignUserOutDto? = null) : Fragment(),
         }
     }
 
+    interface OnStartImageLoad {
+        fun onImageLoad()
+    }
 }
