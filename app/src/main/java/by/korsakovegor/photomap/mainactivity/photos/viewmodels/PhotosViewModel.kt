@@ -75,12 +75,12 @@ class PhotosViewModel : ViewModel() {
 
     }
 
-    fun getComments(imageId: Int?) {
-        val url = "https://junior.balinasoft.com/api/image/$imageId/comment?page=0"
+    fun getComments(imageId: Int?, page: Int) {
+        val url = "https://junior.balinasoft.com/api/image/$imageId/comment?page=$page"
         CoroutineScope(Dispatchers.IO).launch {
             val response = sendGetRequest(url, userToken.value.toString())
+            Log.d("D1le", "Imageid: $imageId PAGE: $page - $response")
             if (response.isNotEmpty()) {
-                Log.d("D1le", response)
                 val resComments = JsonParser.jsonToCommentList(response)
                 if (resComments != null) _comments.postValue(resComments)
             } else

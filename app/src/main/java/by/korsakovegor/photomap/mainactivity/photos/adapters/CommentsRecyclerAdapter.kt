@@ -55,6 +55,12 @@ class CommentsRecyclerAdapter() :
         notifyDataSetChanged()
     }
 
+    fun addData(newComments: ArrayList<CommentDtoOut>){
+        val pos = comments.size
+        comments.addAll(newComments)
+        notifyItemRangeInserted(pos, comments.size)
+    }
+
     fun addItem(item: CommentDtoOut) {
         comments.add(0, item)
         notifyItemInserted(0)

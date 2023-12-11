@@ -9,10 +9,12 @@ import android.os.VibratorManager
 import android.util.Base64
 import android.util.Log
 import android.view.animation.AnimationUtils
+import android.widget.AbsListView.OnScrollListener
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import by.korsakovegor.photomap.R
 import by.korsakovegor.photomap.databinding.DetailPhotoLayoutBinding
 import by.korsakovegor.photomap.mainactivity.photos.adapters.CommentsRecyclerAdapter
@@ -43,8 +45,10 @@ class PhotoDetailActivity : AppCompatActivity(),
     private lateinit var binding: DetailPhotoLayoutBinding
     private var image: ImageDtoOut? = null
     private lateinit var viewModel: PhotosViewModel
+    private var page: Int = 0
+    private var isOnBottom = false
 
-    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = DetailPhotoLayoutBinding.inflate(layoutInflater)
@@ -69,7 +73,8 @@ class PhotoDetailActivity : AppCompatActivity(),
 
         loadImageData()
         if (Utils.isInternetAvailable(this)) {
-            viewModel.getComments(image?.id)
+            page = 0
+            viewModel.getComments(image?.id, page)
             binding.swipeRefreshLayout.isRefreshing = true
         }
 
@@ -83,9 +88,15 @@ class PhotoDetailActivity : AppCompatActivity(),
 
         viewModel.comments.observe(this) {
             binding.swipeRefreshLayout.isRefreshing = false
-            Log.d("D1le", "here")
             if (it != null) {
-                adapter.updateData(it)
+                if(it.size > 0) {
+                    if(page == 0)
+                        adapter.updateData(it)
+                    else
+                        adapter.addData(it)
+                    page++
+                    isOnBottom = false
+                }
             }
         }
 
@@ -129,16 +140,28 @@ class PhotoDetailActivity : AppCompatActivity(),
         }
 
         binding.swipeRefreshLayout.setOnRefreshListener {
-            if (Utils.isInternetAvailable(this))
-                viewModel.getComments(image?.id)
+            if (Utils.isInternetAvailable(this)) {
+                page = 0
+                viewModel.getComments(image?.id, page)
+            }
             else {
                 Utils.showConnectionAlertDialog(this)
                 binding.swipeRefreshLayout.isRefreshing = false
             }
         }
+
+        recycler.addOnScrollListener(object : RecyclerView.OnScrollListener(){
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+                if(!recycler.canScrollVertically(1) && !isOnBottom){
+                    isOnBottom = true
+                    viewModel.getComments(image?.id, page)
+                }
+            }
+        })
     }
 
-    fun loadImageData() {
+    private fun loadImageData() {
         image = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             intent.getSerializableExtra("image", ImageDtoOut::class.java)
         }else
