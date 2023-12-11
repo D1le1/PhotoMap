@@ -1,10 +1,8 @@
 package by.korsakovegor.photomap.authactivity
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import by.korsakovegor.photomap.R
+import androidx.appcompat.app.AppCompatActivity
 import by.korsakovegor.photomap.authactivity.adapters.ViewPagerAdapter
-import by.korsakovegor.photomap.authactivity.fragments.RegisterFragment
 import by.korsakovegor.photomap.databinding.ActivityAuthBinding
 import com.google.android.material.tabs.TabLayoutMediator
 

@@ -26,7 +26,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     private lateinit var toggle: ActionBarDrawerToggle
     private lateinit var viewModel: MainViewModel
     private var user: SignUserOutDto? = null
-    private lateinit var resultLauncher: ActivityResultLauncher<Intent>
 
 
     override fun onCreate(savedInstanceState: Bundle?) {

@@ -5,9 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
 import by.korsakovegor.photomap.databinding.FragmentMapLayoutBinding
-import by.korsakovegor.photomap.mainactivity.photos.viewmodels.PhotosViewModel
 import by.korsakovegor.photomap.models.SignUserOutDto
 import by.korsakovegor.photomap.utils.MainDb
 import com.google.android.gms.maps.CameraUpdateFactory

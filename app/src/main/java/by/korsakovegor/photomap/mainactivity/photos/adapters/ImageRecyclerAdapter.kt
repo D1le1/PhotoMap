@@ -11,7 +11,6 @@ import by.korsakovegor.photomap.R
 import by.korsakovegor.photomap.models.ImageDtoOut
 import by.korsakovegor.photomap.utils.Utils
 import com.squareup.picasso.Picasso
-import okio.Utf8
 
 class ImageRecyclerAdapter :
     RecyclerView.Adapter<ImageRecyclerAdapter.ViewHolder>() {
