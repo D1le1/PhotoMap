@@ -8,7 +8,6 @@ import by.korsakovegor.photomap.models.CommentDtoIn
 import by.korsakovegor.photomap.models.CommentDtoOut
 import by.korsakovegor.photomap.models.ImageDtoIn
 import by.korsakovegor.photomap.models.ImageDtoOut
-import by.korsakovegor.photomap.models.SignUserOutDto
 import by.korsakovegor.photomap.utils.JsonParser
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

@@ -9,6 +9,9 @@ import android.os.VibrationEffect
 import android.os.VibratorManager
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class Utils {
     companion object {
@@ -21,11 +24,11 @@ class Utils {
             return networkCapabilities?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true
         }
 
-        fun showConnectionAlertDialog(context: Context){
+        fun showConnectionAlertDialog(context: Context) {
             val builder = AlertDialog.Builder(context)
             builder.setTitle("Connection Alert")
                 .setMessage("Please check your internet connection")
-                .setPositiveButton("OK") {dialog, _ -> dialog.dismiss()}
+                .setPositiveButton("OK") { dialog, _ -> dialog.dismiss() }
 
             val alertDialog = builder.create()
             alertDialog.show()
@@ -39,7 +42,7 @@ class Utils {
             val builder = AlertDialog.Builder(context)
             builder.setTitle(title)
                 .setMessage(text)
-                .setPositiveButton("OK") { dialog, _ -> dialog.dismiss()}
+                .setPositiveButton("OK") { dialog, _ -> dialog.dismiss() }
             val alertDialog = builder.create()
             alertDialog.show()
         }
@@ -60,8 +63,16 @@ class Utils {
             alertDialog.show()
         }
 
+        fun getFormattedDate(date: Long): String =
+            SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
+                .format(Date(date * 1000))
+
+        fun getFormattedDateTime(date: Long): String =
+            SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault())
+            .format(Date(date * 1000))
+
         @RequiresApi(Build.VERSION_CODES.S)
-        fun doVibrate(vib: VibratorManager){
+        fun doVibrate(vib: VibratorManager) {
             vib.defaultVibrator.vibrate(
                 VibrationEffect.createOneShot(
                     100,

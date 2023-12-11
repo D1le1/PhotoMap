@@ -37,6 +37,7 @@ import by.korsakovegor.photomap.mainactivity.photos.viewmodels.PhotosViewModel
 import by.korsakovegor.photomap.models.ImageDtoIn
 import by.korsakovegor.photomap.models.ImageDtoOut
 import by.korsakovegor.photomap.models.SignUserOutDto
+import by.korsakovegor.photomap.utils.MainDb
 import by.korsakovegor.photomap.utils.Utils
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
@@ -54,9 +55,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.ByteArrayOutputStream
 import java.io.File
-import java.text.SimpleDateFormat
 import java.util.Date
-import java.util.Locale
 
 class PhotosFragment(private val user: SignUserOutDto? = null) : Fragment(),
     ImageRecyclerAdapter.OnImageClickListener,
@@ -70,17 +69,20 @@ class PhotosFragment(private val user: SignUserOutDto? = null) : Fragment(),
     private lateinit var currentFile: File
     private var page: Int = 0
     private var isOnBottom = false
+    private lateinit var db: MainDb
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         page = 0
         viewModel = ViewModelProvider(this)[PhotosViewModel::class.java]
         viewModel.setUserToken(user?.token ?: "")
+        db = MainDb.getInstance(requireContext())
         if (Utils.isInternetAvailable(requireContext())) {
             Log.d("D1le", user?.token.toString())
             viewModel.getImages(page)
-        } else
+        } else {
             Utils.showConnectionAlertDialog(requireContext())
+        }
 
         resultLauncher =
             registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
@@ -125,7 +127,7 @@ class PhotosFragment(private val user: SignUserOutDto? = null) : Fragment(),
         viewModel.images.observe(viewLifecycleOwner) {
             binding.swipeRefreshLayout.isRefreshing = false
             if (it != null) {
-                if(it.size >0) {
+                if (it.size > 0) {
                     if (page == 0) {
                         adapter.updateData(it)
                     } else {
@@ -133,6 +135,9 @@ class PhotosFragment(private val user: SignUserOutDto? = null) : Fragment(),
                     }
                     page++
                     isOnBottom = false
+                    CoroutineScope(Dispatchers.IO).launch {
+                        db.getImagesDao().insertNewImages(it)
+                    }
                 }
             }
             if (adapter.itemCount > 0)
@@ -143,10 +148,16 @@ class PhotosFragment(private val user: SignUserOutDto? = null) : Fragment(),
                 adapter.addItem(it)
                 binding.swipeRefreshLayout.isRefreshing = false
                 binding.noImages.visibility = View.GONE
+                CoroutineScope(Dispatchers.IO).launch {
+                    db.getImagesDao().insertNewImage(it)
+                }
             }
         }
         viewModel.deletedItem.observe(viewLifecycleOwner) {
-            adapter.deleteItem(it)
+            val image = adapter.deleteItem(it)
+            CoroutineScope(Dispatchers.IO).launch {
+                db.getImagesDao().deleteImage(image)
+            }
             if (adapter.itemCount == 0)
                 binding.noImages.visibility = View.VISIBLE
             binding.swipeRefreshLayout.isRefreshing = false
@@ -181,8 +192,11 @@ class PhotosFragment(private val user: SignUserOutDto? = null) : Fragment(),
                 super.onScrolled(recyclerView, dx, dy)
 
                 if (!recycler.canScrollVertically(1) && !isOnBottom) {
-                    isOnBottom = true
-                    viewModel.getImages(page)
+                    if (Utils.isInternetAvailable(requireContext())) {
+                        isOnBottom = true
+                        viewModel.getImages(page)
+                    } else
+                        isOnBottom = false
                 }
             }
         })

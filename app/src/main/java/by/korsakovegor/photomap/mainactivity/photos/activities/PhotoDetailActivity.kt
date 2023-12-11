@@ -1,15 +1,9 @@
 package by.korsakovegor.photomap.mainactivity.photos.activities
 
-import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.drawable.BitmapDrawable
 import android.os.Build
 import android.os.Bundle
 import android.os.VibratorManager
-import android.util.Base64
-import android.util.Log
 import android.view.animation.AnimationUtils
-import android.widget.AbsListView.OnScrollListener
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
@@ -23,22 +17,12 @@ import by.korsakovegor.photomap.models.CommentDtoIn
 import by.korsakovegor.photomap.models.CommentDtoOut
 import by.korsakovegor.photomap.models.ImageDtoOut
 import by.korsakovegor.photomap.models.SignUserOutDto
+import by.korsakovegor.photomap.utils.MainDb
 import by.korsakovegor.photomap.utils.Utils
 import com.squareup.picasso.Picasso
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import okhttp3.Call
-import okhttp3.Callback
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.RequestBody.Companion.toRequestBody
-import okhttp3.Response
-import org.json.JSONObject
-import java.io.ByteArrayOutputStream
-import java.io.IOException
-import java.util.Date
 
 class PhotoDetailActivity : AppCompatActivity(),
     CommentsRecyclerAdapter.OnCommentLongClickListener {
@@ -47,6 +31,7 @@ class PhotoDetailActivity : AppCompatActivity(),
     private lateinit var viewModel: PhotosViewModel
     private var page: Int = 0
     private var isOnBottom = false
+    private lateinit var db: MainDb
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -54,9 +39,11 @@ class PhotoDetailActivity : AppCompatActivity(),
         binding = DetailPhotoLayoutBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        db = MainDb.getInstance(this)
+
         val user = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             intent.getSerializableExtra("user", SignUserOutDto::class.java)
-        }else
+        } else
             intent.getSerializableExtra("user") as SignUserOutDto
 
 
@@ -89,13 +76,16 @@ class PhotoDetailActivity : AppCompatActivity(),
         viewModel.comments.observe(this) {
             binding.swipeRefreshLayout.isRefreshing = false
             if (it != null) {
-                if(it.size > 0) {
-                    if(page == 0)
+                if (it.size > 0) {
+                    if (page == 0)
                         adapter.updateData(it)
                     else
                         adapter.addData(it)
                     page++
                     isOnBottom = false
+                }
+                CoroutineScope(Dispatchers.IO).launch {
+                    db.getCommentsDao().insertNewComments(it)
                 }
             }
         }
@@ -105,6 +95,9 @@ class PhotoDetailActivity : AppCompatActivity(),
             if (it != null) {
                 adapter.addItem(it)
                 binding.commentEditText.text.clear()
+                CoroutineScope(Dispatchers.IO).launch {
+                    db.getCommentsDao().insertNewComment(it)
+                }
             }
         }
 
@@ -118,7 +111,10 @@ class PhotoDetailActivity : AppCompatActivity(),
         }
 
         viewModel.deletedItem.observe(this) {
-            adapter.deleteItem(it)
+            val comment = adapter.deleteItem(it)
+            CoroutineScope(Dispatchers.IO).launch{
+                db.getCommentsDao().deleteComment(comment)
+            }
             binding.swipeRefreshLayout.isRefreshing = false
         }
 
@@ -135,7 +131,7 @@ class PhotoDetailActivity : AppCompatActivity(),
                         CommentDtoIn(binding.commentEditText.text.toString()),
                         image?.id
                     )
-                }else
+                } else
                     Utils.showConnectionAlertDialog(this)
         }
 
@@ -143,19 +139,22 @@ class PhotoDetailActivity : AppCompatActivity(),
             if (Utils.isInternetAvailable(this)) {
                 page = 0
                 viewModel.getComments(image?.id, page)
-            }
-            else {
+            } else {
                 Utils.showConnectionAlertDialog(this)
                 binding.swipeRefreshLayout.isRefreshing = false
             }
         }
 
-        recycler.addOnScrollListener(object : RecyclerView.OnScrollListener(){
+        recycler.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
-                if(!recycler.canScrollVertically(1) && !isOnBottom){
+                if (!recycler.canScrollVertically(1) && !isOnBottom) {
                     isOnBottom = true
-                    viewModel.getComments(image?.id, page)
+                    if (Utils.isInternetAvailable(this@PhotoDetailActivity)) {
+                        binding.swipeRefreshLayout.isRefreshing = true
+                        viewModel.getComments(image?.id, page)
+                    } else
+                        isOnBottom = false
                 }
             }
         })
@@ -164,10 +163,10 @@ class PhotoDetailActivity : AppCompatActivity(),
     private fun loadImageData() {
         image = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             intent.getSerializableExtra("image", ImageDtoOut::class.java)
-        }else
+        } else
             intent.getSerializableExtra("image") as ImageDtoOut
         Picasso.get().load(image?.url).into(binding.photo)
-        binding.time.text = image?.time
+        binding.time.text = Utils.getFormattedDateTime(image?.date ?: 0)
     }
 
     @RequiresApi(Build.VERSION_CODES.S)

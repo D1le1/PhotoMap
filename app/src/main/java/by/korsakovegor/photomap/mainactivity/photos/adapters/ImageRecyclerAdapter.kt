@@ -9,7 +9,9 @@ import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.RecyclerView
 import by.korsakovegor.photomap.R
 import by.korsakovegor.photomap.models.ImageDtoOut
+import by.korsakovegor.photomap.utils.Utils
 import com.squareup.picasso.Picasso
+import okio.Utf8
 
 class ImageRecyclerAdapter :
     RecyclerView.Adapter<ImageRecyclerAdapter.ViewHolder>() {
@@ -37,7 +39,7 @@ class ImageRecyclerAdapter :
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val currentImage = images[position]
         Picasso.get().load(currentImage.url).into(holder.image)
-        holder.date.text = currentImage.formattedDate
+        holder.date.text = Utils.getFormattedDate(currentImage.date)
         holder.card.setOnClickListener {
             onItemClickListener?.onImageClick(it, currentImage)
         }
@@ -73,12 +75,11 @@ class ImageRecyclerAdapter :
         notifyItemInserted(0)
     }
 
-    fun deleteItem(pos: Int) {
-        if (pos == images.size)
-            images.removeAt(images.size - 1)
-        else
-            images.removeAt(pos)
+    fun deleteItem(pos: Int): ImageDtoOut {
+        val image = images[pos]
+        images.remove(image)
         notifyItemRemoved(pos)
+        return image
     }
 
     interface OnImageClickListener {
